@@ -1,4 +1,3 @@
-
 void setup(){ 
 
   //Throut the ports to input.
@@ -13,10 +12,10 @@ void setup(){
   Timer1.attachInterrupt(happen);  //Attach the service routine here
   
   //Reading address from EEPROM.
-  digitalWrite(rele_1, EEPROM.read(address_rele_1));
-  digitalWrite(rele_2, EEPROM.read(address_rele_2));
+  //digitalWrite(relay_substastion, EEPROM.read(address_rele_1));
+  //digitalWrite(relay_ff, EEPROM.read(address_rele_2));
   
   //Reading times from EEPROM.
-  digitalWrite(rele_1, EEPROM.read(address_rele_1));
-  digitalWrite(rele_2, EEPROM.read(address_rele_2));
+  //digitalWrite(rele_1, EEPROM.read(address_rele_1));
+  //digitalWrite(rele_2, EEPROM.read(address_rele_2));
 }
