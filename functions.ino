@@ -1,23 +1,31 @@
 void loop() 
 {
   // send data only when you receive data:
-  if (Serial.available() > 0) {
-          // read the incoming byte:
-          address_xbee address = Serial.read();
-  
-          // say what you got:
-          Serial.print("I received: ");
-          Serial.println(address);
+  if (Serial.available() > 0) {         
   }
 }
 
-void checkUpNewEntries(unsigned long int armazenavalor){
-  //Lê da EEPROM as teclas cadastradas para comparação.
-  unsigned long int key_1 = EEPROMReadlong(5);
-  unsigned long int key_2 = EEPROMReadlong(6);
+void i_do_not_already_understand(){
+      //Read the incoming String:
+    String received_i = Serial.readString();
+
+    // say what you got:
+    Serial.print("I received: ");
+    Serial.println(received_i);
+
+    unsigned long int a = received_i.toInt();
+    Serial.println(a,HEX);
+    a = a << 8;
+    Serial.println(a,HEX);
+    a = (a) & 0xFFFF;
+    Serial.println(a,HEX);
+    a = (a << 8) & 0xFFFFFFFF;
+    Serial.println(a,HEX);
+    String test = "0013A20040915718";
+    Serial.println(test.toInt(),HEX);
 }
 
-void happen()
+void timer_one()
 {
 	
 }
