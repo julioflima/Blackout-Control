@@ -1,6 +1,5 @@
 //Libraries
 #include <Arduino.h>
-#include <Blackout-Control.h>
 
 void Status::Status(void){
     this.set_stop();    
@@ -106,3 +105,4 @@ void Hardware::reset(void)
 {
   asm volatile ("jmp 0x0000");
 }
+

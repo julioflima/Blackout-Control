@@ -1,7 +1,6 @@
 //Libraries
 #include <TimerOne.h>
 #include <SdFat.h>
-#include <Blackout-Control.h>
 
 //Input declaration.
 #define pin_relay_substastion 9
@@ -33,7 +32,7 @@ unsigned long int  rtime_1 = 0;
 //Globals declarations.
 
 
-void setup(){ 
+void setup() {
   // Initialize SdFat.
   // Use half speed like the native library.
   // Change to SPI_FULL_SPEED for more performance.
@@ -41,28 +40,29 @@ void setup(){
 
   // If the file exists, this flag has no effect. Otherwise, the file shall be created. And close.
   myFile.open("adresses.txt", O_RDWR | O_CREAT | O_AT_END);
-    // if the file opened okay, write to it:
+  // if the file opened okay, write to it:
   Serial.print("Writing to test.txt...");
   myFile.println("testing 1, 2, 3.");
   myFile.close();
 
   //Throut the ports to input.
-  pinMode(pin_relay_substastion, INPUT);   
+  pinMode(pin_relay_substastion, INPUT);
   pinMode(pin_relay_ff, INPUT);
-  
+
   //Setting the boudrate.
   Serial.begin(9600);
 
   //Setting the Timer 0.
   Timer1.initialize(100000);  //Set a timer of length 100000 microseconds (or 0.1 sec - or 10Hz => the led will blink 5 times, 5 cycles of on-and-off, per second)
   Timer1.attachInterrupt(hard.timer_one);  //Attach the service routine here
-  
+
 }
 
-void loop() 
+void loop()
 {
   //Send data only when you receive data:
-  if (Serial.available() > 0) {         
+  if (Serial.available() > 0) {
   }
 }
+
 
