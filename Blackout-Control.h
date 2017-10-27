@@ -1,27 +1,30 @@
+#ifndef Blackout-Control_H
+#define Blackout-Control_H
+
 class Status{
   private:
-    byte status;
+    char status;
   public:
-    Status(void);
-    void set_stop(void);
+	Status(void);
     void set_stop(void);
     void set_automatic(void);
     void set_manual(void);
     void set_hibrid(void);
-    byte get_status(void);
+    char get_status(void);
 };
+
 
 class Time{
   private:
-    byte day;
-    byte month;
-    byte year;
-    byte hour;
-    byte minute;
-    byte second;
+    char day;
+    char month;
+    char year;
+    char hour;
+    char minute;
+    char second;
   public:
-    void set_date(byte day, byte month, byte year);
-    void set_time(byte hour, byte minute, byte second);
+    void set_date(char day, char month, char year);
+    void set_time(char hour, char minute, char second);
     int get_date(void);
     int get_time(void);
 };
@@ -34,8 +37,8 @@ class Database{
     int get_minute_address(int address);
     void add_address(int address);  
     void delete_address(int address);
-    void set_time_turn_off(int address,byte hour, byte minute);
-    void set_time_turn_on(int address,byte hour, byte minute);
+    void set_time_turn_off(int address,char hour, char minute);
+    void set_time_turn_on(int address,char hour, char minute);
 };
 
 class Input{
@@ -54,14 +57,15 @@ class Update{
   //CHANGE int TO STRING
   public:
     void set_turn_off(int address);
-    void turn_on(int address,byte hour);  
+    void turn_on(int address,char hour);  
 };
 
 class Hardware{
   public:
     void reset(void);
-    void timer_one(void);
+    static void timer_one(void);
     void i_do_not_already_understand(void);
-}
+};
 
+#endif
 

@@ -1,6 +1,7 @@
 //Libraries
 #include <TimerOne.h>
 #include <SdFat.h>
+#include <Blackout-Control.h>
 
 //Input declaration.
 #define pin_relay_substastion 9

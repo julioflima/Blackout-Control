@@ -1,8 +1,7 @@
-//Libraries
-#include <Arduino.h>
+#include <Blackout-Control.h>
 
-void Status::Status(void){
-    this.set_stop();    
+Status::Status(void){
+    status = 0;
 }
 
 void Status::set_stop(void){
@@ -21,7 +20,7 @@ void Status::set_hibrid(void){
     status = 3;
 }
 
-void Status::get_status(void){
+char Status::get_status(void){
     return status;
 }
 
@@ -94,7 +93,7 @@ void Hardware::i_do_not_already_understand(void){
     Serial.println(test.toInt(),HEX);
 }
 
-void Hardware::timer_one(void)
+static void Hardware::timer_one(void)
 {
   //Update the input state.
   state.relay_substation = digitalRead(pin_relay_substation);
