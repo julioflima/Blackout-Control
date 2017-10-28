@@ -52,56 +52,57 @@ void Database::add_address(int address){
   Serial.println("done.");
 }
 
-void Input::Input(void){
-  this.relay_substastion = 0;
-  this.relay_ff = 0;
+Hardware::Hardware(void) {
+	relay_ff = 8;
+	relay_substation = 9;
+	chipSelect = 10;
 }
 
-void Input::set_relay_substastion(bool relay_substastion){
-  this.relay_substastion;
+char Hardware::get_relay_ff(void) {
+	return relay_ff;
 }
 
-void Input::set_relay_ff(bool relay_ff){
-  this.relay_ff = relay_ff;
+char Hardware::get_relay_substation(void) {
+	return relay_substation;
 }
 
-bool Input::get_relay_substastion(){
-  return relay_substastion;
+char Hardware::get_chipSelect() {
+	return chipSelect;
 }
 
-bool Input::get_relay_ff(){
-  return relay_ff;
+void Hardware::set_TRISn(void) {
+	//Throut the ports to input.
+	pinMode(get_relay_ff(), INPUT);
+	pinMode(get_relay_substation(), INPUT);
+	//Throut the ports to output.
 }
 
-void Hardware::i_do_not_already_understand(void){
-      //Read the incoming String:
-    String received_i = Serial.readString();
-
-    // say what you got:
-    Serial.print("I received: ");
-    Serial.println(received_i);
-
-    unsigned long int a = received_i.toInt();
-    Serial.println(a,HEX);
-    a = a << 8;
-    Serial.println(a,HEX);
-    a = (a) & 0xFFFF;
-    Serial.println(a,HEX);
-    a = (a << 8) & 0xFFFFFFFF;
-    Serial.println(a,HEX);
-    String test = "0013A20040915718";
-    Serial.println(test.toInt(),HEX);
+Input::Input(void) {
+	relay_substation = 0;
+	relay_ff = 0;
+	hard = Hardware();
 }
 
-static void Hardware::timer_one(void)
+bool Input::get_relay_substation(void) {
+	return relay_substation;
+}
+
+bool Input::get_relay_ff(void) {
+	return relay_ff;
+}
+
+void Input::set_relay_substation(bool relay_substation) {
+	this->relay_substation = relay_substation;
+}
+
+void Input::set_relay_ff(bool relay_ff) {
+	this->relay_ff = relay_ff;
+}
+
+void Input::timer_one(void)
 {
-  //Update the input state.
-  state.relay_substation = digitalRead(pin_relay_substation);
-  state.relay_ff = digitalRead(pin_relay_ff);
-}
-
-void Hardware::reset(void)
-{
-  asm volatile ("jmp 0x0000");
+	//Update the input state.
+	set_relay_substation(digitalRead(hard.get_relay_substation()));
+	set_relay_ff(digitalRead(hard.get_relay_ff()));
 }
 

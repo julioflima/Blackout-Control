@@ -41,18 +41,6 @@ class Database{
     void set_time_turn_on(int address,char hour, char minute);
 };
 
-class Input{
-  private:
-    bool relay_substastion;
-    bool relay_ff;
-  public:
-    Input(void);
-    void set_relay_substastion(bool relay_substastion);
-    void set_relay_ff(bool relay_ff);
-    bool get_relay_substastion();
-    bool get_relay_ff();   
-};
-
 class Update{
   //CHANGE int TO STRING
   public:
@@ -60,12 +48,34 @@ class Update{
     void turn_on(int address,char hour);  
 };
 
-class Hardware{
-  public:
-    void reset(void);
-    static void timer_one(void);
-    void i_do_not_already_understand(void);
+class Hardware {
+private:
+	char relay_ff;
+	char relay_substation;
+	char chipSelect;
+public:
+	Hardware(void);
+	char get_relay_ff(void);
+	char get_relay_substation(void);
+	char get_chipSelect(void);
+	void set_TRISn(void);
 };
+
+class Input {
+private:
+	bool relay_substation;
+	bool relay_ff;
+	Hardware hard;
+public:
+	Input(void);
+	void set_relay_substation(bool relay_substastion);
+	void set_relay_ff(bool relay_ff);
+	bool get_relay_substation(void);
+	void timer_one(void);
+	bool get_relay_ff(void);
+};
+
+
 
 #endif
 
