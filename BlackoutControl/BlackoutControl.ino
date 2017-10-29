@@ -1,5 +1,5 @@
 //Libraries
-#include "BlackoutControl.h"
+#include "Blackout-Control.h"
 #include <TimerOne.h>
 #include <Arduino.h>
 
