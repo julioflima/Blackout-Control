@@ -57,34 +57,63 @@ void Database::add_address(int address) {
 }
 
 Hardware::Hardware(void) {
-	relay_ff = 8;
-	relay_substation = 9;
-	chipSelect = 10;
+	inputLvl();
+	pin_relay_substation = 2;
+	pin_relay_ff = 3;
+	pin_chipSelect = 10;
 }
 
-char Hardware::get_relay_ff(void) {
-	return relay_ff;
+char Hardware::get_pin_relay_ff(void) {
+	return pin_relay_ff;
 }
 
-char Hardware::get_relay_substation(void) {
-	return relay_substation;
+char Hardware::get_pin_relay_substation(void) {
+	return pin_relay_substation;
 }
 
-char Hardware::get_chipSelect() {
-	return chipSelect;
+char Hardware::get_pin_chipSelect() {
+	return pin_chipSelect;
 }
 
 void Hardware::set_TRISn(void) {
 	//Throut the ports to input.
-	pinMode(get_relay_ff(), INPUT);
-	pinMode(get_relay_substation(), INPUT);
+	pinMode(get_pin_relay_ff(), INPUT);
+	pinMode(get_pin_relay_substation(), INPUT);
 	//Throut the ports to output.
+}
+
+void Hardware::inputLvl() {
+	//Throut the ports to input.
+	//Throut the resistor to pullup.
+	pinMode(get_pin_relay_ff(), INPUT_PULLUP);
+	pinMode(get_pin_relay_substation(), INPUT_PULLUP);
+	//Throut the resistor to pulldown.
+}
+
+
+void Hardware::i_do_not_already_understand(void) {
+	//Read the incoming String:
+	String received_i = Serial.readString();
+
+	// say what you got:
+	Serial.print("I received: ");
+	Serial.println(received_i);
+
+	unsigned long int a = received_i.toInt();
+	Serial.println(a, HEX);
+	a = a << 8;
+	Serial.println(a, HEX);
+	a = (a) & 0xFFFF;
+	Serial.println(a, HEX);
+	a = (a << 8) & 0xFFFFFFFF;
+	Serial.println(a, HEX);
+	String test = "0013A20040915718";
+	Serial.println(test.toInt(), HEX);
 }
 
 Input::Input(void) {
 	relay_substation = 0;
 	relay_ff = 0;
-	hard = Hardware();
 }
 
 bool Input::get_relay_substation(void) {
@@ -106,7 +135,21 @@ void Input::set_relay_ff(bool relay_ff) {
 void Input::timer_one(void)
 {
 	//Update the input state.
-	set_relay_substation(digitalRead(hard.get_relay_substation()));
-	set_relay_ff(digitalRead(hard.get_relay_ff()));
+	Input in;
+	in.set_relay_substation(digitalRead(in.get_pin_relay_substation()));
+	in.set_relay_ff(digitalRead(in.get_pin_relay_ff()));
+}
+
+void Input::extIntSubstation(void) {
+	Input in;
+	in.set_relay_substation(digitalRead(in.get_pin_relay_substation()));
+	Serial.println("INTERRUPTION 2");
+}
+
+void Input::extIntFF(void) {
+	Input in;
+	in.set_relay_ff(digitalRead(in.get_pin_relay_ff()));
+	Serial.println("INTERRUPTION 3");
+
 }
 

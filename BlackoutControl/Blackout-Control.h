@@ -1,5 +1,5 @@
-#ifndef Blackout-Control_H
-#define Blackout-Control_H
+#ifndef BLACKOUT-CONTROL_H
+#define BLACKOUT-CONTROL_H
 
 class Status {
 private:
@@ -50,32 +50,32 @@ public:
 
 class Hardware {
 private:
-	char relay_ff;
-	char relay_substation;
-	char chipSelect;
+	char pin_relay_substation;
+	char pin_relay_ff;
+	char pin_chipSelect;
 public:
 	Hardware(void);
-	char get_relay_ff(void);
-	char get_relay_substation(void);
-	char get_chipSelect(void);
+	char get_pin_relay_ff(void);
+	char get_pin_relay_substation(void);
+	char get_pin_chipSelect(void);
 	void set_TRISn(void);
+	void inputLvl(void);
+	void i_do_not_already_understand(void);
 };
 
-class Input {
+class Input : public Hardware {
 private:
 	bool relay_substation;
 	bool relay_ff;
-	Hardware hard;
 public:
 	Input(void);
 	void set_relay_substation(bool relay_substastion);
 	void set_relay_ff(bool relay_ff);
 	bool get_relay_substation(void);
-	void timer_one(void);
 	bool get_relay_ff(void);
+	static void extIntSubstation(void);
+	static void extIntFF(void);
+	static void timer_one(void);
 };
-
-
-
 #endif
 
