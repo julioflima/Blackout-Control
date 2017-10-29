@@ -23,11 +23,8 @@
     <ClInclude Include="Blackout-Control.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="__vm\.Blackout-Control.vsarduino.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Blackout-Control.ino" />
+    <None Include="BlackoutControl.ino" />
   </ItemGroup>
 </Project>
