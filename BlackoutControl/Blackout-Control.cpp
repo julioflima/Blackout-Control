@@ -1,8 +1,10 @@
 #include "Blackout-Control.h"
 #include <SdFat.h>
+#include <SoftwareSerial.h>
 
 SdFat sd;
 SdFile myFile;
+
 
 Status::Status(void) {
 	status = 0;
@@ -56,19 +58,93 @@ void Database::add_address(int address) {
 	Serial.println("done.");
 }
 
+void Comunication::remoteRequest(XBeeAddress64 remoteAddress, uint8_t dPort, uint8_t dState) {
+
+	// Set a D"dPort" port.
+	// Add 48 to dPort to pass to ASCII.
+	atCmd[1] = { dPort + 48 };
+
+	// Set a D"i" value.
+	atValue[0] = { dState };
+
+	// Now reuse same object for D"dPort" command.
+	remoteAtRequest.setRemoteAddress64(remoteAddress);
+	remoteAtRequest.setCommand(atCmd);
+	remoteAtRequest.setCommandValue(atValue);
+	remoteAtRequest.setCommandValueLength(sizeof(atValue));
+
+	int tryTimes = 0;
+	while (executeRemote() == dState && tryTimes < 5) {
+		executeRemote();
+		tryTimes++;
+	}
+}
+
+uint8_t Comunication::executeRemote() {
+	// Set and query to compare
+	setAndQueryRemote();
+
+	// It's a good idea to clear the set value so that the object can be reused for a query.
+	remoteAtRequest.clearCommandValue();
+
+	return setAndQueryRemote();
+}
+
+uint8_t Comunication::setAndQueryRemote() {
+
+	// Send the command.
+	xbee.send(remoteAtRequest);
+
+	// Wait up until to 5 seconds for the status response.
+	// If got a response.
+	if (xbee.readPacket(5000)) {
+
+		// Should be an AT command response.
+		if (xbee.getResponse().getApiId() == REMOTE_AT_COMMAND_RESPONSE) {
+			xbee.getResponse().getRemoteAtCommandResponse(remoteAtResponse);
+
+			// If response is OK.
+			if (remoteAtResponse.isOk()) {
+
+				// Get value of input D"i".
+				if (remoteAtResponse.getValueLength() > 0) {
+					for (int i = 0; i < remoteAtResponse.getValueLength(); i++) {
+						// Set transation with the value of response.
+						return remoteAtResponse.getValue()[i];
+					}
+				}
+			}
+			else {
+				// Set transation with not OK.
+				return false;
+			}
+		}
+		else {
+			// Set transation with not OK.
+			return false;
+		}
+	}
+	else {
+		// Set transation with not OK.
+		return false;
+	}
+	// Set transation with OK.
+	return true;
+}
+
 Hardware::Hardware(void) {
-	inputLvl();
 	pin_relay_substation = 2;
 	pin_relay_ff = 3;
 	pin_chipSelect = 10;
-}
-
-char Hardware::get_pin_relay_ff(void) {
-	return pin_relay_ff;
+	inputLvl();
 }
 
 char Hardware::get_pin_relay_substation(void) {
 	return pin_relay_substation;
+}
+
+char Hardware::get_pin_relay_ff(void) {
+	return pin_relay_ff;
 }
 
 char Hardware::get_pin_chipSelect() {
@@ -88,27 +164,6 @@ void Hardware::inputLvl() {
 	pinMode(get_pin_relay_ff(), INPUT_PULLUP);
 	pinMode(get_pin_relay_substation(), INPUT_PULLUP);
 	//Throut the resistor to pulldown.
-}
-
-
-void Hardware::i_do_not_already_understand(void) {
-	//Read the incoming String:
-	String received_i = Serial.readString();
-
-	// say what you got:
-	Serial.print("I received: ");
-	Serial.println(received_i);
-
-	unsigned long int a = received_i.toInt();
-	Serial.println(a, HEX);
-	a = a << 8;
-	Serial.println(a, HEX);
-	a = (a) & 0xFFFF;
-	Serial.println(a, HEX);
-	a = (a << 8) & 0xFFFFFFFF;
-	Serial.println(a, HEX);
-	String test = "0013A20040915718";
-	Serial.println(test.toInt(), HEX);
 }
 
 Input::Input(void) {
@@ -132,24 +187,22 @@ void Input::set_relay_ff(bool relay_ff) {
 	this->relay_ff = relay_ff;
 }
 
-void Input::timer_one(void)
-{
+void Input::timer_one(void) {
 	//Update the input state.
-	Input in;
-	in.set_relay_substation(digitalRead(in.get_pin_relay_substation()));
-	in.set_relay_ff(digitalRead(in.get_pin_relay_ff()));
 }
 
 void Input::extIntSubstation(void) {
+	//Update the port 2.
+
 	Input in;
 	in.set_relay_substation(digitalRead(in.get_pin_relay_substation()));
 	Serial.println("INTERRUPTION 2");
 }
 
 void Input::extIntFF(void) {
+	//Update the port 3.
 	Input in;
 	in.set_relay_ff(digitalRead(in.get_pin_relay_ff()));
 	Serial.println("INTERRUPTION 3");
-
 }
 

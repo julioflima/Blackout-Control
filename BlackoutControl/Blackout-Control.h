@@ -1,6 +1,8 @@
 #ifndef BLACKOUT-CONTROL_H
 #define BLACKOUT-CONTROL_H
 
+#include <XBee.h>
+
 class Status {
 private:
 	char status;
@@ -41,6 +43,26 @@ public:
 	void set_time_turn_on(int address, char hour, char minute);
 };
 
+class Comunication {
+private:
+	// Define by default the AT commands for digital ports.
+	uint8_t atCmd[2] = { 'D','0' };
+	// Define by default the digital port to output and low.
+	uint8_t atValue[1] = { 0x4 };
+	// Create a Remote AT response object
+	XBeeAddress64 remoteAddress = XBeeAddress64(0x00, BROADCAST_ADDRESS);
+	// Create a Remote AT request object;
+	RemoteAtCommandRequest remoteAtRequest = RemoteAtCommandRequest(remoteAddress, atCmd, atValue, sizeof(atValue));
+	// Create a Remote AT response object
+	RemoteAtCommandResponse remoteAtResponse = RemoteAtCommandResponse();
+public:
+	// Create a Xbee object.
+	XBee xbee = XBee();
+	void remoteRequest(XBeeAddress64 remoteAddress, uint8_t dPort, uint8_t dState);
+	uint8_t executeRemote();
+	uint8_t setAndQueryRemote();
+};
+
 class Update {
 	//CHANGE int TO STRING
 public:
@@ -60,7 +82,6 @@ public:
 	char get_pin_chipSelect(void);
 	void set_TRISn(void);
 	void inputLvl(void);
-	void i_do_not_already_understand(void);
 };
 
 class Input : public Hardware {
