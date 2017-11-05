@@ -1,10 +1,4 @@
 #include "Blackout-Control.h"
-#include <SdFat.h>
-#include <SoftwareSerial.h>
-
-SdFat sd;
-SdFile myFile;
-
 
 Status::Status(void) {
 	status = 0;
@@ -30,36 +24,96 @@ char Status::get_status(void) {
 	return status;
 }
 
-int Database::read_address(int i) {
-	// re-open the file for reading:
-	if (!myFile.open("test.txt", O_READ)) {
-		sd.errorHalt("opening test.txt for read failed");
-	}
-	Serial.println("test.txt:");
+Database::Database(uint8_t chipSelect, SoftwareSerial nss) {
+	// Setting the boudrate of Software Serial.
+	nss.begin(9600);
 
-	// read from the file until there's nothing else in it:
-	int data;
-	while ((data = myFile.read()) >= 0) Serial.write(data);
-	// close the file:
+	if (!sd.begin(chipSelect, SPI_HALF_SPEED)) nss.println("SD don't init.");
+
+	// Open or create the file.
+	if (!myFile.open("address.txt", O_RDWR | O_CREAT | O_AT_END)) nss.println("Opening address.txt for create failed.");
+
+	// Close the file.
 	myFile.close();
 }
 
-void Database::add_address(int address) {
-	// open the file for write at end like the Native SD library
-	if (!myFile.open("test.txt", O_RDWR | O_CREAT | O_AT_END)) {
-		sd.errorHalt("opening test.txt for write failed");
-	}
-	// if the file opened okay, write to it:
-	Serial.print("Writing to test.txt...");
-	myFile.println("testing 1, 2, 3.");
+void Database::print(SoftwareSerial &nss) {
+	// Re-open the file for reading to print.
+	if (!myFile.open("address.txt", O_READ)) nss.println("Opening address.txt for print failed.");
 
-	// close the file:
+	// Read from the file and print.
+	int16_t data;
+	while ((data = myFile.read()) >= 0) nss.write(data);
+
+	// Close the file.
 	myFile.close();
-	Serial.println("done.");
 }
 
-void Comunication::remoteRequest(XBeeAddress64 remoteAddress, uint8_t dPort, uint8_t dState) {
+void Database::del(SoftwareSerial &nss) {
+	// Open for delete the file.
+	if (!myFile.open("address.txt", O_EXCL)) nss.println("Opening address.txt for exclude failed.");
+	else if (!myFile.remove()) nss.println("Removing file failed.");
+}
 
+void Database::add(SoftwareSerial &nss, uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
+	uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
+	uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30) {
+	// Open the file for write the address and schedules.
+	if (!myFile.open("address.txt", O_WRITE | O_AT_END)) {
+		nss.println("Opening address.txt for add address failed.");
+	}
+
+	// If the file is opened, add address to it.
+	// Address, SH and SL.
+	myFile.print(sh, HEX);
+	myFile.print(",");
+	myFile.print(sl, HEX);
+	myFile.print(",");
+
+	// Feeding the time of activation and deactivation of D"port". 
+	myFile.print(act_h_d0, DEC);
+	myFile.print(",");
+	myFile.print(act_min_d0, DEC);
+	myFile.print(",");
+	myFile.print(dea_h_d0, DEC);
+	myFile.print(",");
+	myFile.print(dea_min_d0, DEC);
+	myFile.print(",");
+	myFile.print(act_h_d1, DEC);
+	myFile.print(",");
+	myFile.print(act_min_d1, DEC);
+	myFile.print(",");
+	myFile.print(dea_h_d1, DEC);
+	myFile.print(",");
+	myFile.print(dea_min_d1, DEC);
+	myFile.print(",");
+	myFile.print(act_h_d2, DEC);
+	myFile.print(",");
+	myFile.print(act_min_d2, DEC);
+	myFile.print(",");
+	myFile.print(dea_h_d2, DEC);
+	myFile.print(",");
+	myFile.print(dea_min_d2, DEC);
+	myFile.print(",");
+	myFile.print(act_h_d3, DEC);
+	myFile.print(",");
+	myFile.print(act_min_d3, DEC);
+	myFile.print(",");
+	myFile.print(dea_h_d3, DEC);
+	myFile.print(",");
+	myFile.println(dea_min_d3, DEC);
+
+	// Close the file.
+	myFile.close();
+
+	// Report added.
+	nss.print("The address,  ");
+	nss.print(sh, HEX);
+	nss.print(sl, HEX);
+	nss.println(", was added.");
+}
+
+void Comunication::remoteRequest(XBeeAddress64 &remoteAddress, uint8_t &dPort, uint8_t &dState) {
 	// Set a D"dPort" port.
 	// Add 48 to dPort to pass to ASCII.
 	atCmd[1] = { dPort + 48 };
@@ -91,7 +145,6 @@ uint8_t Comunication::executeRemote() {
 }
 
 uint8_t Comunication::setAndQueryRemote() {
-
 	// Send the command.
 	xbee.send(remoteAtRequest);
 
@@ -132,6 +185,10 @@ uint8_t Comunication::setAndQueryRemote() {
 	return true;
 }
 
+Hardware::Hardware(SoftwareSerial &nss) {
+	this->nss = nss;
+}
+
 Hardware::Hardware(void) {
 	pin_relay_substation = 2;
 	pin_relay_ff = 3;
@@ -166,10 +223,11 @@ void Hardware::inputLvl() {
 	//Throut the resistor to pulldown.
 }
 
-Input::Input(void) {
-	relay_substation = 0;
-	relay_ff = 0;
-}
+
+
+bool Input::relay_substation;
+
+bool Input::relay_ff;
 
 bool Input::get_relay_substation(void) {
 	return relay_substation;
@@ -179,30 +237,29 @@ bool Input::get_relay_ff(void) {
 	return relay_ff;
 }
 
-void Input::set_relay_substation(bool relay_substation) {
-	this->relay_substation = relay_substation;
+void Input::set_relay_substation(bool _relay_substation) {
+	relay_substation = _relay_substation;
 }
 
-void Input::set_relay_ff(bool relay_ff) {
-	this->relay_ff = relay_ff;
+void Input::set_relay_ff(bool _relay_ff) {
+	relay_ff = _relay_ff;
 }
 
 void Input::timer_one(void) {
 	//Update the input state.
 }
 
-void Input::extIntSubstation(void) {
+void Input::extIntSubstation() {
 	//Update the port 2.
-
-	Input in;
-	in.set_relay_substation(digitalRead(in.get_pin_relay_substation()));
-	Serial.println("INTERRUPTION 2");
+	//Input in;
+	//in.set_relay_substation(digitalRead(in.get_pin_relay_substation()));
+	//nss.print(in.get_relay_ff, DEC);
 }
 
-void Input::extIntFF(void) {
+void Input::extIntFF() {
 	//Update the port 3.
-	Input in;
-	in.set_relay_ff(digitalRead(in.get_pin_relay_ff()));
-	Serial.println("INTERRUPTION 3");
+	//Input in;
+	//in.set_relay_ff(digitalRead(in.get_pin_relay_ff()));
+	//nss.print(in.get_relay_ff, DEC);
 }
 

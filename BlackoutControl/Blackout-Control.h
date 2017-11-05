@@ -2,6 +2,10 @@
 #define BLACKOUT-CONTROL_H
 
 #include <XBee.h>
+#include <SdFat.h>
+#include <SoftwareSerial.h>
+
+
 
 class Status {
 private:
@@ -32,13 +36,19 @@ public:
 };
 
 class Database {
-	//CHANGE int TO STRING
+private:
+	SdFat sd;
+	SdFile myFile;
 public:
-	int read_address(int i);
+	Database(uint8_t chipSelect, SoftwareSerial nss);
+	void del(SoftwareSerial &nss);
+	void add(SoftwareSerial &nss, uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
+		uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
+		uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30);
 	int get_hour_address(int address);
+	void print(SoftwareSerial &nss);
+	uint16_t print();
 	int get_minute_address(int address);
-	void add_address(int address);
-	void delete_address(int address);
 	void set_time_turn_off(int address, char hour, char minute);
 	void set_time_turn_on(int address, char hour, char minute);
 };
@@ -58,7 +68,7 @@ private:
 public:
 	// Create a Xbee object.
 	XBee xbee = XBee();
-	void remoteRequest(XBeeAddress64 remoteAddress, uint8_t dPort, uint8_t dState);
+	void remoteRequest(XBeeAddress64 &remoteAddress, uint8_t &dPort, uint8_t &dState);
 	uint8_t executeRemote();
 	uint8_t setAndQueryRemote();
 };
@@ -75,7 +85,10 @@ private:
 	char pin_relay_substation;
 	char pin_relay_ff;
 	char pin_chipSelect;
+	SoftwareSerial &nss;
+
 public:
+	Hardware(SoftwareSerial &nss);
 	Hardware(void);
 	char get_pin_relay_ff(void);
 	char get_pin_relay_substation(void);
@@ -86,14 +99,13 @@ public:
 
 class Input : public Hardware {
 private:
-	bool relay_substation;
-	bool relay_ff;
+	static bool relay_substation;
+	static bool relay_ff;
 public:
-	Input(void);
-	void set_relay_substation(bool relay_substastion);
-	void set_relay_ff(bool relay_ff);
-	bool get_relay_substation(void);
-	bool get_relay_ff(void);
+	static void set_relay_substation(bool _relay_substastion);
+	static void set_relay_ff(bool _relay_ff);
+	static bool get_relay_substation(void);
+	static bool get_relay_ff(void);
 	static void extIntSubstation(void);
 	static void extIntFF(void);
 	static void timer_one(void);

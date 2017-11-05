@@ -9,16 +9,21 @@
 // Connect Arduino pin 9 to RX of usb-serial device
 #define ssTX 9
 // Remember to connect all devices to a common Ground: XBee, Arduino and USB-Serial device
-SoftwareSerial nss(ssRX, ssTX);
+static SoftwareSerial nss(ssRX, ssTX);
 
-//Input object declaration. The Input object build the Hardware too.
+//Hardware object declaration. 
+Hardware hard = Hardware(nss);
+
+//Input object declaration.
 Input in;
 
 //Comunication object declaration. The Comunication object build the Xbee too.
-Comunication xbee = Comunication();
+Comunication xbee;
+
+//Database object declaration. The Comunication object build the SdFile and Sd too.
+Database db = Database(in.get_pin_chipSelect(), nss);
 
 void setup() {
-
 	// Setting the Timer One.
 	// Set a timer of length 100000 microseconds (or 0.1 sec - or 10Hz => the led will blink 5 times, 5 cycles of on-and-off, per second).
 	Timer1.initialize(100000);
@@ -35,20 +40,33 @@ void setup() {
 	// Setting the Xbee.
 	xbee.xbee.begin(Serial);
 
+	// Setting the boudrate of Software Serial.
+	nss.begin(9600);
+
 	// Wait the Xbee configurations.
 	delay(5000);
+
+	dbInit();
 }
 
 int count = 0;
 void loop()
 {
-	if (count % 2 == 0) {
-		xbee.remoteRequest(XBeeAddress64(0x00, BROADCAST_ADDRESS), 0, 4);
-	}
-	else {
-		xbee.remoteRequest(XBeeAddress64(0x0013A200, 0x4091572D), 0, 5);
-	}
 
-	count++;
+	//if (count % 2 == 0) {
+	//	xbee.remoteRequest(XBeeAddress64(0x00, BROADCAST_ADDRESS), 0, 4);
+	//}
+	//else {
+	//	xbee.remoteRequest(XBeeAddress64(0x0013A200, 0x4091572D), 0, 5);
+	//}
+
+	//count++;
 	delay(1000);
+	db.print(nss);
+}
+
+void dbInit() {
+	db.del(nss);
+	db = Database(in.get_pin_chipSelect(), nss);
+	db.add(nss, 0x0013A200, 0x4091572D);
 }
