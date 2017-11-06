@@ -254,15 +254,13 @@ void Input::timer_one(void) {
 
 void Input::extIntSubstation() {
 	//Update the port 2.
-	//Input in;
-	//in.set_relay_substation(digitalRead(in.get_pin_relay_substation()));
-	//nss.print(in.get_relay_ff, DEC);
+	set_relay_substation(digitalRead(get_pin_relay_substation()));
+	nss.print(get_relay_ff(), DEC);
 }
 
 void Input::extIntFF() {
 	//Update the port 3.
-	//Input in;
-	//in.set_relay_ff(digitalRead(in.get_pin_relay_ff()));
-	//nss.print(in.get_relay_ff, DEC);
+	set_relay_ff(digitalRead(get_pin_relay_ff()));
+	nss.print(get_relay_ff(), DEC);
 }
 

@@ -81,14 +81,14 @@ public:
 
 class Hardware {
 private:
-	const char pin_relay_substation = 2;
-	const char pin_relay_ff = 3;
-	const char pin_chipSelect = 10;
+	static const char pin_relay_substation = 2;
+	static const char pin_relay_ff = 3;
+	static const char pin_chipSelect = 10;
 public:
 	Hardware(void);
-	char get_pin_relay_ff(void);
-	char get_pin_relay_substation(void);
-	char get_pin_chipSelect(void);
+	static char get_pin_relay_ff(void);
+	static char get_pin_relay_substation(void);
+	static char get_pin_chipSelect(void);
 	void set_TRISn(void);
 	void inputLvl(void);
 };
