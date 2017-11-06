@@ -40,14 +40,13 @@ private:
 	SdFat sd;
 	SdFile myFile;
 public:
-	Database(uint8_t chipSelect, SoftwareSerial nss);
-	void del(SoftwareSerial &nss);
-	void add(SoftwareSerial &nss, uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
+	Database(uint8_t chipSelect);
+	void del();
+	void add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 		uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
 		uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30);
 	int get_hour_address(int address);
-	void print(SoftwareSerial &nss);
-	uint16_t print();
+	void print();
 	int get_minute_address(int address);
 	void set_time_turn_off(int address, char hour, char minute);
 	void set_time_turn_on(int address, char hour, char minute);
@@ -82,13 +81,10 @@ public:
 
 class Hardware {
 private:
-	char pin_relay_substation;
-	char pin_relay_ff;
-	char pin_chipSelect;
-	SoftwareSerial &nss;
-
+	const char pin_relay_substation = 2;
+	const char pin_relay_ff = 3;
+	const char pin_chipSelect = 10;
 public:
-	Hardware(SoftwareSerial &nss);
 	Hardware(void);
 	char get_pin_relay_ff(void);
 	char get_pin_relay_substation(void);

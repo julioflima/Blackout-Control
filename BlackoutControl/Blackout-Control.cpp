@@ -1,4 +1,13 @@
 #include "Blackout-Control.h"
+#include <SoftwareSerial.h>
+
+// Define SoftSerial TX/RX pins
+// Connect Arduino pin 8 to TX of usb-serial device
+#define ssRX 8
+// Connect Arduino pin 9 to RX of usb-serial device
+#define ssTX 9
+// Remember to connect all devices to a common Ground: XBee, Arduino and USB-Serial device
+static SoftwareSerial nss(ssRX, ssTX);
 
 Status::Status(void) {
 	status = 0;
@@ -24,7 +33,7 @@ char Status::get_status(void) {
 	return status;
 }
 
-Database::Database(uint8_t chipSelect, SoftwareSerial nss) {
+Database::Database(uint8_t chipSelect) {
 	// Setting the boudrate of Software Serial.
 	nss.begin(9600);
 
@@ -33,11 +42,14 @@ Database::Database(uint8_t chipSelect, SoftwareSerial nss) {
 	// Open or create the file.
 	if (!myFile.open("address.txt", O_RDWR | O_CREAT | O_AT_END)) nss.println("Opening address.txt for create failed.");
 
+
+	nss.println("o happy day.");
+
 	// Close the file.
 	myFile.close();
 }
 
-void Database::print(SoftwareSerial &nss) {
+void Database::print() {
 	// Re-open the file for reading to print.
 	if (!myFile.open("address.txt", O_READ)) nss.println("Opening address.txt for print failed.");
 
@@ -49,13 +61,13 @@ void Database::print(SoftwareSerial &nss) {
 	myFile.close();
 }
 
-void Database::del(SoftwareSerial &nss) {
+void Database::del() {
 	// Open for delete the file.
 	if (!myFile.open("address.txt", O_EXCL)) nss.println("Opening address.txt for exclude failed.");
 	else if (!myFile.remove()) nss.println("Removing file failed.");
 }
 
-void Database::add(SoftwareSerial &nss, uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
+void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 	uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
 	uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30) {
 	// Open the file for write the address and schedules.
@@ -185,14 +197,11 @@ uint8_t Comunication::setAndQueryRemote() {
 	return true;
 }
 
-Hardware::Hardware(SoftwareSerial &nss) {
-	this->nss = nss;
-}
-
 Hardware::Hardware(void) {
-	pin_relay_substation = 2;
-	pin_relay_ff = 3;
-	pin_chipSelect = 10;
+	// Setting the boudrate of Software Serial.
+	nss.begin(9600);
+
+	set_TRISn();
 	inputLvl();
 }
 
@@ -223,8 +232,6 @@ void Hardware::inputLvl() {
 	//Throut the resistor to pulldown.
 }
 
-
-
 bool Input::relay_substation;
 
 bool Input::relay_ff;
@@ -247,6 +254,8 @@ void Input::set_relay_ff(bool _relay_ff) {
 
 void Input::timer_one(void) {
 	//Update the input state.
+	digitalWrite(13, HIGH);
+	Serial.println(digitalRead(2));
 }
 
 void Input::extIntSubstation() {

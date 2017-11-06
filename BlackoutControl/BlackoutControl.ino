@@ -1,27 +1,15 @@
 //Libraries
 #include "Blackout-Control.h"
 #include <TimerOne.h>
-#include <SoftwareSerial.h>
-
-// Define SoftSerial TX/RX pins
-// Connect Arduino pin 8 to TX of usb-serial device
-#define ssRX 8
-// Connect Arduino pin 9 to RX of usb-serial device
-#define ssTX 9
-// Remember to connect all devices to a common Ground: XBee, Arduino and USB-Serial device
-static SoftwareSerial nss(ssRX, ssTX);
-
-//Hardware object declaration. 
-Hardware hard = Hardware(nss);
 
 //Input object declaration.
-Input in;//
+Input in;
 
 //Comunication object declaration. The Comunication object build the Xbee too.
 Comunication xbee;
 
 //Database object declaration. The Comunication object build the SdFile and Sd too.
-Database db = Database(in.get_pin_chipSelect(), nss);
+Database db = Database(in.get_pin_chipSelect());
 
 void setup() {
 	// Setting the Timer One.
@@ -39,9 +27,6 @@ void setup() {
 
 	// Setting the Xbee.
 	xbee.xbee.begin(Serial);
-
-	// Setting the boudrate of Software Serial.
-	nss.begin(9600);
 
 	// Wait the Xbee configurations.
 	delay(5000);
@@ -62,11 +47,11 @@ void loop()
 
 	//count++;
 	delay(1000);
-	db.print(nss);
+	db.print();
 }
 
 void dbInit() {
-	db.del(nss);
-	db = Database(in.get_pin_chipSelect(), nss);
-	db.add(nss, 0x0013A200, 0x4091572D);
+	db.del();
+	db = Database(in.get_pin_chipSelect());
+	db.add(0x0013A200, 0x4091572D);
 }
