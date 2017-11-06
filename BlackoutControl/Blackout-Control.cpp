@@ -264,3 +264,15 @@ void Input::extIntFF() {
 	nss.println("Blackout, missing some phase.");
 }
 
+Status BlackoutControl::st;
+
+Comunication BlackoutControl::xb;
+
+BlackoutControl::BlackoutControl() {
+	// Setting the Xbee.
+	xb.xbee.begin(Serial);
+
+}
+
+
+

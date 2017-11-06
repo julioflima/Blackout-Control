@@ -2,16 +2,16 @@
 #include "Blackout-Control.h"
 #include <TimerOne.h>
 
-//Input object declaration.
-Input in;
-
-//Comunication object declaration. The Comunication object build the Xbee too.
-Comunication xbee;
-
-//Database object declaration. The Comunication object build the SdFile and Sd too.
-Database db = Database(in.get_pin_chipSelect());
-
 void setup() {
+	//Input object declaration.
+	Input in;
+
+	//Database object declaration. The Comunication object build the SdFile and Sd too.
+	Database db = Database(in.get_pin_chipSelect());
+
+	//BlaoutControl object declaration.
+	BlackoutControl blk;
+
 	// Setting the Timer One.
 	// Set a timer of length 100000 microseconds (or 0.1 sec - or 10Hz => the led will blink 5 times, 5 cycles of on-and-off, per second).
 	Timer1.initialize(100000);
@@ -24,9 +24,6 @@ void setup() {
 
 	// Setting the boudrate of Xbee.
 	Serial.begin(9600);
-
-	// Setting the Xbee.
-	xbee.xbee.begin(Serial);
 
 	// Wait the Xbee configurations.
 	delay(5000);

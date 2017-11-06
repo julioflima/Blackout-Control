@@ -106,5 +106,19 @@ public:
 	static void extIntFF(void);
 	static void timer_one(void);
 };
+
+class BlackoutControl {
+private:
+	// Status object declaration.
+	static Status st;
+	// Comunication object declaration. The Comunication object build the Xbee too.
+	static Comunication xb;
+public:
+	BlackoutControl();
+	void turnAllOut(void);
+	void turnAllIn(void);
+	void turnIn(void);
+	void turnOut(void);
+};
 #endif
 
