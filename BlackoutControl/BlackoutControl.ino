@@ -15,7 +15,7 @@ static SoftwareSerial nss(ssRX, ssTX);
 Hardware hard = Hardware(nss);
 
 //Input object declaration.
-Input in;
+Input in;//
 
 //Comunication object declaration. The Comunication object build the Xbee too.
 Comunication xbee;
