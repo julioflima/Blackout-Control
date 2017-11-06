@@ -89,8 +89,8 @@ public:
 	static char get_pin_relay_ff(void);
 	static char get_pin_relay_substation(void);
 	static char get_pin_chipSelect(void);
-	void set_TRISn(void);
-	void inputLvl(void);
+	static void set_TRISn(void);
+	static void inputLvl(void);
 };
 
 class Input : public Hardware {

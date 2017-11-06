@@ -255,12 +255,12 @@ void Input::timer_one(void) {
 void Input::extIntSubstation() {
 	//Update the port 2.
 	set_relay_substation(digitalRead(get_pin_relay_substation()));
-	nss.print(get_relay_ff(), DEC);
+	nss.println("Blackout, generator in.");
 }
 
 void Input::extIntFF() {
 	//Update the port 3.
 	set_relay_ff(digitalRead(get_pin_relay_ff()));
-	nss.print(get_relay_ff(), DEC);
+	nss.println("Blackout, missing some phase.");
 }
 
