@@ -34,16 +34,10 @@ char Status::get_status(void) {
 }
 
 Database::Database(uint8_t chipSelect) {
-	// Setting the boudrate of Software Serial.
-	nss.begin(9600);
-
 	if (!sd.begin(chipSelect, SPI_HALF_SPEED)) nss.println("SD don't init.");
 
 	// Open or create the file.
 	if (!myFile.open("address.txt", O_RDWR | O_CREAT | O_AT_END)) nss.println("Opening address.txt for create failed.");
-
-
-	nss.println("o happy day.");
 
 	// Close the file.
 	myFile.close();
@@ -63,8 +57,8 @@ void Database::print() {
 
 void Database::del() {
 	// Open for delete the file.
-	if (!myFile.open("address.txt", O_EXCL)) nss.println("Opening address.txt for exclude failed.");
-	else if (!myFile.remove()) nss.println("Removing file failed.");
+	if (!myFile.open("address.txt", O_RDWR)) nss.println("Opening address.txt for exclude failed.");
+	if (!myFile.remove()) nss.println("Removing file failed.");
 }
 
 void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
