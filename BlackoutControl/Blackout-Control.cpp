@@ -1,5 +1,4 @@
 #include "Blackout-Control.h"
-#include <SoftwareSerial.h>
 
 // Define SoftSerial TX/RX pins
 // Connect Arduino pin 8 to TX of usb-serial device
@@ -33,8 +32,8 @@ char Status::get_status(void) {
 	return status;
 }
 
-Database::Database(uint8_t chipSelect) {
-	if (!sd.begin(chipSelect, SPI_HALF_SPEED)) nss.println("SD don't init.");
+Database::Database() {
+	if (!sd.begin(get_pin_chipSelect(), SPI_HALF_SPEED)) nss.println("SD don't init.");
 
 	// Open or create the file.
 	if (!myFile.open("address.txt", O_RDWR | O_CREAT | O_AT_END)) nss.println("Opening address.txt for create failed.");
@@ -55,7 +54,7 @@ void Database::print() {
 	myFile.close();
 }
 
-String Database::getLine(uint8_t pos) {
+String Database::getLine() {
 	// Re-open the file for reading to print.
 	if (!myFile.open("address.txt", O_READ)) nss.println("Opening address.txt for print failed.");
 
@@ -244,6 +243,31 @@ Hardware::Hardware(void) {
 	inputLvl();
 }
 
+void Hardware::reset() {
+	// Start watchdog with the provided prescaller.
+	// Some times to wait before reset: WDTO_15MS, WDTO_30MS, WDTO_60MS, WDTO_120MS, WDTO_250MS, WDTO_500MS, WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
+	wdt_enable(WDTO_15MS);
+	// Wait for the prescaller time to expire.
+	// Without sending the reset signal by using.
+	// The wdt_reset() method stop the wdt.
+	while (true) {}
+}
+
+void Hardware::set_TRISn(void) {
+	//Throut the ports to input.
+	pinMode(get_pin_relay_ff(), INPUT);
+	pinMode(get_pin_relay_substation(), INPUT);
+	//Throut the ports to output.
+}
+
+void Hardware::inputLvl(void) {
+	//Throut the ports to input.
+	//Throut the resistor to pullup.
+	pinMode(get_pin_relay_ff(), INPUT_PULLUP);
+	pinMode(get_pin_relay_substation(), INPUT_PULLUP);
+	//Throut the resistor to pulldown.
+}
+
 char Hardware::get_pin_relay_substation(void) {
 	return pin_relay_substation;
 }
@@ -254,21 +278,6 @@ char Hardware::get_pin_relay_ff(void) {
 
 char Hardware::get_pin_chipSelect() {
 	return pin_chipSelect;
-}
-
-void Hardware::set_TRISn(void) {
-	//Throut the ports to input.
-	pinMode(get_pin_relay_ff(), INPUT);
-	pinMode(get_pin_relay_substation(), INPUT);
-	//Throut the ports to output.
-}
-
-void Hardware::inputLvl() {
-	//Throut the ports to input.
-	//Throut the resistor to pullup.
-	pinMode(get_pin_relay_ff(), INPUT_PULLUP);
-	pinMode(get_pin_relay_substation(), INPUT_PULLUP);
-	//Throut the resistor to pulldown.
 }
 
 bool Input::relay_substation;
@@ -313,14 +322,11 @@ Status BlackoutControl::st;
 
 Comunication BlackoutControl::xb;
 
-uint8_t BlackoutControl::cs;
+Database BlackoutControl::db;
 
-Database BlackoutControl::db = Database(cs);
-
-BlackoutControl::BlackoutControl(uint8_t cs) {
+BlackoutControl::BlackoutControl() {
 	// Setting the Xbee.
 	xb.xbee.begin(Serial);
-	this->cs = cs;
 }
 
 void BlackoutControl::turnAllOut(void) {

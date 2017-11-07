@@ -6,7 +6,7 @@
 Input in;
 
 //BlackoutControl object declaration.
-BlackoutControl blk = BlackoutControl(in.get_pin_chipSelect());
+BlackoutControl blk;
 
 void setup() {
 	// Setting the Timer One.
@@ -41,11 +41,10 @@ void loop()
 
 	//count++;
 	delay(1000);
-	blk.db.print();
+	blk.db.getLine();
 }
 
 void dbInit() {
 	blk.db.del();
-	blk.db = Database(in.get_pin_chipSelect());
 	blk.db.add(0x0013A200, 0x4091572D);
 }

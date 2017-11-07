@@ -4,8 +4,7 @@
 #include <XBee.h>
 #include <SdFat.h>
 #include <SoftwareSerial.h>
-
-
+#include <avr/wdt.h>
 
 class Status {
 private:
@@ -33,24 +32,6 @@ public:
 	void set_time(char hour, char minute, char second);
 	int get_date(void);
 	int get_time(void);
-};
-
-class Database {
-private:
-	SdFat sd;
-	SdFile myFile;
-public:
-	Database(uint8_t chipSelect);
-	void del();
-	void add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
-		uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
-		uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30);
-	uint8_t genCheckSum(uint32_t sh, uint32_t sl,
-		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
-		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3);
-	void print();
-	String getLine(uint8_t pos);
-	uint8_t get_time(String line, uint8_t port, bool act_dea, char type);
 };
 
 class Comunication {
@@ -87,11 +68,31 @@ private:
 	static const char pin_chipSelect = 10;
 public:
 	Hardware(void);
+	static void reset();
+	static void set_TRISn(void);
+	static void inputLvl(void);
 	static char get_pin_relay_ff(void);
 	static char get_pin_relay_substation(void);
 	static char get_pin_chipSelect(void);
-	static void set_TRISn(void);
-	static void inputLvl(void);
+
+};
+
+class Database : public Hardware {
+private:
+	SdFat sd;
+	SdFile myFile;
+public:
+	Database();
+	void del();
+	void add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
+		uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
+		uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30);
+	uint8_t genCheckSum(uint32_t sh, uint32_t sl,
+		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
+		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3);
+	void print();
+	String getLine();
+	uint8_t get_time(String line, uint8_t port, bool act_dea, char type);
 };
 
 class Input : public Hardware {
@@ -109,8 +110,6 @@ public:
 };
 
 class BlackoutControl {
-private:
-	static uint8_t cs;
 public:
 	// Status object declaration.
 	static Status st;
@@ -119,7 +118,7 @@ public:
 	//Database object declaration. The Comunication object build the SdFile and Sd too.
 	static Database db;
 	static Time time;
-	BlackoutControl(uint8_t cs);
+	BlackoutControl();
 	void turnAllOut(void);
 	void turnAllIn(void);
 	void turnIn(void);
