@@ -45,11 +45,12 @@ public:
 	void add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 		uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
 		uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30);
-	int get_hour_address(int address);
+	uint8_t genCheckSum(uint32_t sh, uint32_t sl,
+		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
+		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3);
 	void print();
-	int get_minute_address(int address);
-	void set_time_turn_off(int address, char hour, char minute);
-	void set_time_turn_on(int address, char hour, char minute);
+	String getLine(uint8_t pos);
+	uint8_t get_time(String line, uint8_t port, bool act_dea, char type);
 };
 
 class Comunication {
@@ -67,7 +68,7 @@ private:
 public:
 	// Create a Xbee object.
 	XBee xbee = XBee();
-	void remoteRequest(XBeeAddress64 &remoteAddress, uint8_t &dPort, uint8_t &dState);
+	void remoteRequest(XBeeAddress64 remoteAddress, uint8_t dPort, uint8_t dState);
 	uint8_t executeRemote();
 	uint8_t setAndQueryRemote();
 };
@@ -109,12 +110,16 @@ public:
 
 class BlackoutControl {
 private:
+	static uint8_t cs;
+public:
 	// Status object declaration.
 	static Status st;
 	// Comunication object declaration. The Comunication object build the Xbee too.
 	static Comunication xb;
-public:
-	BlackoutControl();
+	//Database object declaration. The Comunication object build the SdFile and Sd too.
+	static Database db;
+	static Time time;
+	BlackoutControl(uint8_t cs);
 	void turnAllOut(void);
 	void turnAllIn(void);
 	void turnIn(void);

@@ -2,16 +2,13 @@
 #include "Blackout-Control.h"
 #include <TimerOne.h>
 
+//Input object declaration.
+Input in;
+
+//BlackoutControl object declaration.
+BlackoutControl blk = BlackoutControl(in.get_pin_chipSelect());
+
 void setup() {
-	//Input object declaration.
-	Input in;
-
-	//Database object declaration. The Comunication object build the SdFile and Sd too.
-	Database db = Database(in.get_pin_chipSelect());
-
-	//BlaoutControl object declaration.
-	BlackoutControl blk;
-
 	// Setting the Timer One.
 	// Set a timer of length 100000 microseconds (or 0.1 sec - or 10Hz => the led will blink 5 times, 5 cycles of on-and-off, per second).
 	Timer1.initialize(100000);
@@ -44,11 +41,11 @@ void loop()
 
 	//count++;
 	delay(1000);
-	db.print();
+	blk.db.print();
 }
 
 void dbInit() {
-	db.del();
-	db = Database(in.get_pin_chipSelect());
-	db.add(0x0013A200, 0x4091572D);
+	blk.db.del();
+	blk.db = Database(in.get_pin_chipSelect());
+	blk.db.add(0x0013A200, 0x4091572D);
 }

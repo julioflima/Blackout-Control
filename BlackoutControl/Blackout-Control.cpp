@@ -49,10 +49,32 @@ void Database::print() {
 
 	// Read from the file and print.
 	int16_t data;
-	while ((data = myFile.read()) >= 0) nss.write(data);
+	while ((data = myFile.read()) >= 0) nss.println(data);
 
-	// Close the file.
+	// Close the file. 
 	myFile.close();
+}
+
+String Database::getLine(uint8_t pos) {
+	// Re-open the file for reading to print.
+	if (!myFile.open("address.txt", O_READ)) nss.println("Opening address.txt for print failed.");
+
+	// Read from the file store in String.
+	int16_t data;
+	String line;
+	while ((data = myFile.read()) >= 0) {
+		if (data == '\n') {
+			nss.print("Isso é uma linha:    ");
+		}
+		else nss.write(data);
+	}
+
+	// Close the file. 
+	myFile.close();
+}
+
+uint8_t Database::get_time(String line, uint8_t port, bool act_dea, char type) {
+
 }
 
 void Database::del() {
@@ -107,9 +129,17 @@ void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 	myFile.print(",");
 	myFile.print(dea_h_d3, DEC);
 	myFile.print(",");
-	myFile.println(dea_min_d3, DEC);
+	myFile.print(dea_min_d3, DEC);
+	myFile.print(",");
+
+	// Now calcutate the HEC checksum:
+	uint8_t checksum = genCheckSum(sh, sl,
+		act_h_d0, act_min_d0, dea_h_d0, dea_min_d0, act_h_d1, act_min_d1, dea_h_d1, dea_min_d1,
+		act_h_d2, act_min_d2, dea_h_d2, dea_min_d2, act_h_d3, act_min_d3, dea_h_d3, dea_min_d3);
+	myFile.println(checksum, HEX);
 
 	// Close the file.
+
 	myFile.close();
 
 	// Report added.
@@ -119,7 +149,22 @@ void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 	nss.println(", was added.");
 }
 
-void Comunication::remoteRequest(XBeeAddress64 &remoteAddress, uint8_t &dPort, uint8_t &dState) {
+uint8_t Database::genCheckSum(uint32_t sh, uint32_t sl,
+	uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
+	uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3) {
+
+	// Now calcutate the HEC checksum:
+	uint8_t checksum = 0;
+	checksum = (sh & 0xff) + ((sh >> 8) & 0xff) + ((sh >> 16) & 0xff) + ((sh >> 32) & 0xff);
+	checksum += (sl & 0xff) + ((sl >> 8) & 0xff) + ((sl >> 16) & 0xff) + ((sl >> 24) & 0xff);
+	checksum += act_h_d0 + act_min_d0 + dea_h_d0 + dea_min_d0 + act_h_d1 + act_min_d1 + dea_h_d1 + dea_min_d1;
+	checksum += act_h_d2 + act_min_d2 + dea_h_d2 + dea_min_d2 + act_h_d3 + act_min_d3 + dea_h_d3 + dea_min_d3;
+	checksum ^= 0xFF;
+	checksum += 1;
+	return checksum;
+}
+
+void Comunication::remoteRequest(XBeeAddress64 remoteAddress, uint8_t dPort, uint8_t dState) {
 	// Set a D"dPort" port.
 	// Add 48 to dPort to pass to ASCII.
 	atCmd[1] = { dPort + 48 };
@@ -268,11 +313,38 @@ Status BlackoutControl::st;
 
 Comunication BlackoutControl::xb;
 
-BlackoutControl::BlackoutControl() {
+uint8_t BlackoutControl::cs;
+
+Database BlackoutControl::db = Database(cs);
+
+BlackoutControl::BlackoutControl(uint8_t cs) {
 	// Setting the Xbee.
 	xb.xbee.begin(Serial);
-
+	this->cs = cs;
 }
 
+void BlackoutControl::turnAllOut(void) {
+	// Change the status to stop.
+	st.set_stop();
 
+	// Increment i and send in broadcast the value of digital ports to low.
+	for (uint8_t i = 0; i < 4; i++) {
+		xb.remoteRequest(XBeeAddress64(0x00, BROADCAST_ADDRESS), i, 4);
+		delay(400);
+	}
+}
 
+void BlackoutControl::turnAllIn(void) {
+	// Change the status to automatic.
+	st.set_automatic();
+}
+
+void BlackoutControl::turnIn(void) {
+	// Change the status to automatic.
+	st.set_automatic();
+}
+
+void BlackoutControl::turnOut(void) {
+	// Change the status to automatic.
+	st.set_automatic();
+}
