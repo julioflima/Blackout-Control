@@ -41,7 +41,7 @@ void loop()
 
 	//count++;
 	delay(1000);
-	blk.db.getLine();
+	blk.db.print();
 }
 
 void dbInit() {
