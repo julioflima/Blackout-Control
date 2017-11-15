@@ -23,7 +23,7 @@ void setup() {
 	Serial.begin(9600);
 
 	// Wait the Xbee configurations.
-	delay(5000);
+	delay(0);
 
 	dbInit();
 }
@@ -40,11 +40,13 @@ void loop()
 	//}
 
 	//count++;
-	delay(1000);
+	delay(5000);
 	blk.db.print();
+
 }
 
 void dbInit() {
 	blk.db.del();
+	blk.db = Database();
 	blk.db.add(0x0013A200, 0x4091572D);
 }

@@ -36,7 +36,8 @@ Database::Database() {
 	if (!sd.begin(get_pin_chipSelect(), SPI_HALF_SPEED)) nss.println("SD don't init.");
 
 	// Open or create the file.
-	if (!myFile.open("address.txt", O_RDWR | O_CREAT | O_AT_END)) nss.println("Opening address.txt for create failed.");
+	if (!myFile.open("address.csv", O_RDWR | O_CREAT | O_AT_END)) nss.println("Opening address.csv for create failed.");
+	else nss.println("File was created!");
 
 	// Close the file.
 	myFile.close();
@@ -44,108 +45,104 @@ Database::Database() {
 
 void Database::print() {
 	// Re-open the file for reading to print.
-	if (!myFile.open("address.txt", O_READ)) nss.println("Opening address.txt for print failed.");
+	if (!myFile.open("address.csv", O_READ)) nss.println("Opening address.csv for print failed.");
 
 	// Read from the file and print.
 	int16_t data;
-	while ((data = myFile.read()) >= 0) nss.println(data);
+	while ((data = myFile.read()) >= 0) nss.write(data);
 
 	// Close the file. 
 	myFile.close();
 }
 
-String Database::getLine() {
+String Database::getLine(uint8_t nLine = 1) {
 	// Re-open the file for reading to print.
-	if (!myFile.open("address.txt", O_READ)) nss.println("Opening address.txt for print failed.");
+	if (!myFile.open("address.csv", O_READ)) nss.println("Opening address.csv for print failed.");
 
-	// Read from the file store in String.
-	int16_t data;
 	String line;
-	while ((data = myFile.read()) >= 0) {
-		if (data == '\n') {
-			nss.print("Isso é uma linha:    ");
-		}
-		else nss.write(data);
+	// Read from the file and print.
+	while (myFile.available()) {
+		line += myFile.read();
 	}
 
 	// Close the file. 
 	myFile.close();
-}
-
-uint8_t Database::get_time(String line, uint8_t port, bool act_dea, char type) {
-
+	return line;
 }
 
 void Database::del() {
 	// Open for delete the file.
-	if (!myFile.open("address.txt", O_RDWR)) nss.println("Opening address.txt for exclude failed.");
+	if (!myFile.open("address.csv", O_RDWR)) nss.println("Opening address.csv for remove failed.");
 	if (!myFile.remove()) nss.println("Removing file failed.");
+	else nss.println("File was removed!");
 }
 
 void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 	uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
 	uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30) {
 	// Open the file for write the address and schedules.
-	if (!myFile.open("address.txt", O_WRITE | O_AT_END)) {
-		nss.println("Opening address.txt for add address failed.");
+	if (!myFile.open("address.csv", O_WRITE | O_AT_END)) {
+		nss.println("Opening address.csv for add address failed.");
+	}
+	else {
+		// If the file is opened, add address to it.
+		// Address, SH and SL.
+		myFile.print(sh, HEX);
+		myFile.print(",");
+		myFile.print(sl, HEX);
+		myFile.print(",");
+
+		// Feeding the time of activation and deactivation of D"port". 
+		myFile.print(act_h_d0, DEC);
+		myFile.print(",");
+		myFile.print(act_min_d0, DEC);
+		myFile.print(",");
+		myFile.print(dea_h_d0, DEC);
+		myFile.print(",");
+		myFile.print(dea_min_d0, DEC);
+		myFile.print(",");
+		myFile.print(act_h_d1, DEC);
+		myFile.print(",");
+		myFile.print(act_min_d1, DEC);
+		myFile.print(",");
+		myFile.print(dea_h_d1, DEC);
+		myFile.print(",");
+		myFile.print(dea_min_d1, DEC);
+		myFile.print(",");
+		myFile.print(act_h_d2, DEC);
+		myFile.print(",");
+		myFile.print(act_min_d2, DEC);
+		myFile.print(",");
+		myFile.print(dea_h_d2, DEC);
+		myFile.print(",");
+		myFile.print(dea_min_d2, DEC);
+		myFile.print(",");
+		myFile.print(act_h_d3, DEC);
+		myFile.print(",");
+		myFile.print(act_min_d3, DEC);
+		myFile.print(",");
+		myFile.print(dea_h_d3, DEC);
+		myFile.print(",");
+		myFile.print(dea_min_d3, DEC);
+		myFile.print(",");
+
+		// Now calcutate the HEC checksum:
+		uint8_t checksum = genCheckSum(sh, sl,
+			act_h_d0, act_min_d0, dea_h_d0, dea_min_d0, act_h_d1, act_min_d1, dea_h_d1, dea_min_d1,
+			act_h_d2, act_min_d2, dea_h_d2, dea_min_d2, act_h_d3, act_min_d3, dea_h_d3, dea_min_d3);
+		myFile.println(checksum, HEX);
+
+		// Report added.
+		nss.print("The address,  ");
+		nss.print(sh, HEX);
+		nss.print(sl, HEX);
+		nss.println(", was added.");
 	}
 
-	// If the file is opened, add address to it.
-	// Address, SH and SL.
-	myFile.print(sh, HEX);
-	myFile.print(",");
-	myFile.print(sl, HEX);
-	myFile.print(",");
-
-	// Feeding the time of activation and deactivation of D"port". 
-	myFile.print(act_h_d0, DEC);
-	myFile.print(",");
-	myFile.print(act_min_d0, DEC);
-	myFile.print(",");
-	myFile.print(dea_h_d0, DEC);
-	myFile.print(",");
-	myFile.print(dea_min_d0, DEC);
-	myFile.print(",");
-	myFile.print(act_h_d1, DEC);
-	myFile.print(",");
-	myFile.print(act_min_d1, DEC);
-	myFile.print(",");
-	myFile.print(dea_h_d1, DEC);
-	myFile.print(",");
-	myFile.print(dea_min_d1, DEC);
-	myFile.print(",");
-	myFile.print(act_h_d2, DEC);
-	myFile.print(",");
-	myFile.print(act_min_d2, DEC);
-	myFile.print(",");
-	myFile.print(dea_h_d2, DEC);
-	myFile.print(",");
-	myFile.print(dea_min_d2, DEC);
-	myFile.print(",");
-	myFile.print(act_h_d3, DEC);
-	myFile.print(",");
-	myFile.print(act_min_d3, DEC);
-	myFile.print(",");
-	myFile.print(dea_h_d3, DEC);
-	myFile.print(",");
-	myFile.print(dea_min_d3, DEC);
-	myFile.print(",");
-
-	// Now calcutate the HEC checksum:
-	uint8_t checksum = genCheckSum(sh, sl,
-		act_h_d0, act_min_d0, dea_h_d0, dea_min_d0, act_h_d1, act_min_d1, dea_h_d1, dea_min_d1,
-		act_h_d2, act_min_d2, dea_h_d2, dea_min_d2, act_h_d3, act_min_d3, dea_h_d3, dea_min_d3);
-	myFile.println(checksum, HEX);
-
-	// Close the file.
-
+	// By the way, close the file.
 	myFile.close();
 
-	// Report added.
-	nss.print("The address,  ");
-	nss.print(sh, HEX);
-	nss.print(sl, HEX);
-	nss.println(", was added.");
+
 }
 
 uint8_t Database::genCheckSum(uint32_t sh, uint32_t sl,
