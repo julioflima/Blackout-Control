@@ -1,19 +1,20 @@
 //Libraries
 #include "Blackout-Control.h"
-#include <TimerOne.h>
+#include <SdFat.h>
 
 //Input object declaration.
 Input in;
+
+//SD object declaration.
+SdFat sdMain;
 
 //BlackoutControl object declaration.
 BlackoutControl blk;
 
 void setup() {
-	// Setting the Timer One.
-	// Set a timer of length 100000 microseconds (or 0.1 sec - or 10Hz => the led will blink 5 times, 5 cycles of on-and-off, per second).
-	Timer1.initialize(100000);
-	// Attach the service routine here.
-	Timer1.attachInterrupt(in.timer_one);
+
+	//Init SD.
+	if (!sdMain.begin(10, SPI_HALF_SPEED)) sdMain.initErrorHalt();
 
 	// Attach the Extern Interruptions.
 	attachInterrupt(digitalPinToInterrupt(in.get_pin_relay_substation()), in.extIntSubstation, FALLING);
@@ -40,8 +41,20 @@ void loop()
 	//}
 
 	//count++;
-	delay(5000);
-	blk.db.print();
+
+	delay(1000);
+
+	const int line_buffer_size = 69 + 1;
+	char buffer[line_buffer_size];
+	ifstream sdin("address.txt");
+
+	int line = 0;
+
+	while (sdin.getline(buffer, line_buffer_size, '\n') || sdin.gcount()) {
+		int count = sdin.gcount();
+		Serial.print(String(++line));
+		Serial.println(buffer);
+	}
 
 }
 

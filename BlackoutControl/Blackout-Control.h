@@ -91,7 +91,7 @@ public:
 	uint8_t genCheckSum(uint32_t sh, uint32_t sl,
 		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
 		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3);
-	String getLine(uint8_t nLine);
+	String getLine();
 	void print();
 };
 

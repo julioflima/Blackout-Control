@@ -36,7 +36,7 @@ Database::Database() {
 	if (!sd.begin(get_pin_chipSelect(), SPI_HALF_SPEED)) nss.println("SD don't init.");
 
 	// Open or create the file.
-	if (!myFile.open("address.csv", O_RDWR | O_CREAT | O_AT_END)) nss.println("Opening address.csv for create failed.");
+	if (!myFile.open("address.txt", O_RDWR | O_CREAT | O_AT_END)) nss.println("Opening address.txt for create failed.");
 	else nss.println("File was created!");
 
 	// Close the file.
@@ -45,7 +45,7 @@ Database::Database() {
 
 void Database::print() {
 	// Re-open the file for reading to print.
-	if (!myFile.open("address.csv", O_READ)) nss.println("Opening address.csv for print failed.");
+	if (!myFile.open("address.txt", O_READ)) nss.println("Opening address.txt for print failed.");
 
 	// Read from the file and print.
 	int16_t data;
@@ -55,24 +55,25 @@ void Database::print() {
 	myFile.close();
 }
 
-String Database::getLine(uint8_t nLine = 1) {
-	// Re-open the file for reading to print.
-	if (!myFile.open("address.csv", O_READ)) nss.println("Opening address.csv for print failed.");
+String Database::getLine() {
+	static const int line_buffer_size = 69 + 1;
+	static char buffer[line_buffer_size];
+	ifstream sdin("address.txt");
 
-	String line;
-	// Read from the file and print.
-	while (myFile.available()) {
-		line += myFile.read();
+	nss.println("helow its me");
+
+	while (sdin.getline(buffer, line_buffer_size, '\n')) {
+
+		nss.println(buffer[5], DEC);
 	}
 
-	// Close the file. 
-	myFile.close();
-	return line;
+	sdin.close();
 }
+
 
 void Database::del() {
 	// Open for delete the file.
-	if (!myFile.open("address.csv", O_RDWR)) nss.println("Opening address.csv for remove failed.");
+	if (!myFile.open("address.txt", O_RDWR)) nss.println("Opening address.txt for remove failed.");
 	if (!myFile.remove()) nss.println("Removing file failed.");
 	else nss.println("File was removed!");
 }
@@ -81,15 +82,15 @@ void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 	uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
 	uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30) {
 	// Open the file for write the address and schedules.
-	if (!myFile.open("address.csv", O_WRITE | O_AT_END)) {
-		nss.println("Opening address.csv for add address failed.");
+	if (!myFile.open("address.txt", O_WRITE | O_AT_END)) {
+		nss.println("Opening address.txt for add address failed.");
 	}
 	else {
 		// If the file is opened, add address to it.
 		// Address, SH and SL.
-		myFile.print(sh, HEX);
+		myFile.print(sh, DEC);
 		myFile.print(",");
-		myFile.print(sl, HEX);
+		myFile.print(sl, DEC);
 		myFile.print(",");
 
 		// Feeding the time of activation and deactivation of D"port". 
@@ -130,7 +131,7 @@ void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 		uint8_t checksum = genCheckSum(sh, sl,
 			act_h_d0, act_min_d0, dea_h_d0, dea_min_d0, act_h_d1, act_min_d1, dea_h_d1, dea_min_d1,
 			act_h_d2, act_min_d2, dea_h_d2, dea_min_d2, act_h_d3, act_min_d3, dea_h_d3, dea_min_d3);
-		myFile.println(checksum, HEX);
+		myFile.println(checksum, DEC);
 
 		// Report added.
 		nss.print("The address,  ");
@@ -298,9 +299,7 @@ void Input::set_relay_ff(bool _relay_ff) {
 }
 
 void Input::timer_one(void) {
-	//Update the input state.
-	digitalWrite(13, HIGH);
-	Serial.println(digitalRead(2));
+
 }
 
 void Input::extIntSubstation() {
