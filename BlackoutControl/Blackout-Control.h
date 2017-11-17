@@ -15,6 +15,7 @@ public:
 	void set_automatic(void);
 	void set_manual(void);
 	void set_hibrid(void);
+
 	char get_status(void);
 };
 
@@ -79,20 +80,32 @@ public:
 
 class Database : public Hardware {
 private:
-	SdFat sd;
+	static SdFat sd;
 	SdFile myFile;
 	String fileName = "address.csv";
+	uint32_t sh, sl;
+	uint8_t act_h_d0, act_min_d0, dea_h_d0, dea_min_d0, act_h_d1, act_min_d1, dea_h_d1, dea_min_d1,
+		act_h_d2, act_min_d2, dea_h_d2, dea_min_d2, act_h_d3, act_min_d3, dea_h_d3, dea_min_d3, checksum;
 public:
 	Database();
 	void del();
+	void set_line(uint32_t sh, uint32_t sl,
+		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
+		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3);
 	void add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 		uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
 		uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30);
 	uint8_t genCheckSum(uint32_t sh, uint32_t sl,
 		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
 		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3);
-	String getLine();
+	uint8_t chkCheckSum(uint32_t sh, uint32_t sl,
+		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
+		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3,
+		uint8_t checksum);
+	void getLine(uint8_t line);
+	uint8_t Database::countLine();
 	void print();
+	void split(String buffer);
 };
 
 class Input : public Hardware {

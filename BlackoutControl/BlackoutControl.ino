@@ -1,20 +1,13 @@
 //Libraries
 #include "Blackout-Control.h"
-#include <SdFat.h>
 
 //Input object declaration.
 Input in;
-
-//SD object declaration.
-SdFat sdMain;
 
 //BlackoutControl object declaration.
 BlackoutControl blk;
 
 void setup() {
-
-	//Init SD.
-	if (!sdMain.begin(10, SPI_HALF_SPEED)) sdMain.initErrorHalt();
 
 	// Attach the Extern Interruptions.
 	attachInterrupt(digitalPinToInterrupt(in.get_pin_relay_substation()), in.extIntSubstation, FALLING);
@@ -44,22 +37,24 @@ void loop()
 
 	delay(1000);
 
-	const int line_buffer_size = 69 + 1;
-	char buffer[line_buffer_size];
-	ifstream sdin("address.txt");
+	//const int line_buffer_size = 69 + 1;
+	//char buffer[line_buffer_size];
+	//ifstream sdin("address.txt");
 
-	int line = 0;
+	//int line = 0;
 
-	while (sdin.getline(buffer, line_buffer_size, '\n') || sdin.gcount()) {
-		int count = sdin.gcount();
-		Serial.print(String(++line));
-		Serial.println(buffer);
-	}
+	//while (sdin.getline(buffer, line_buffer_size, '\n') || sdin.gcount()) {
+	//	int count = sdin.gcount();
+	//	Serial.print(String(++line));
+	//	Serial.println(buffer);
+	//}
+
+	blk.db.getLine();
 
 }
 
 void dbInit() {
-	blk.db.del();
-	blk.db = Database();
-	blk.db.add(0x0013A200, 0x4091572D);
+	//blk.db.del();
+	//blk.db = Database();
+	//blk.db.add(0x0013A200, 0x4091572D);
 }

@@ -32,8 +32,10 @@ char Status::get_status(void) {
 	return status;
 }
 
+SdFat Database::sd;
+
 Database::Database() {
-	if (!sd.begin(get_pin_chipSelect(), SPI_HALF_SPEED)) nss.println("SD don't init.");
+	if (!sd.begin(get_pin_chipSelect(), SPI_FULL_SPEED)) nss.println("SD don't init.");
 
 	// Open or create the file.
 	if (!myFile.open("address.txt", O_RDWR | O_CREAT | O_AT_END)) nss.println("Opening address.txt for create failed.");
@@ -55,21 +57,88 @@ void Database::print() {
 	myFile.close();
 }
 
-String Database::getLine() {
+void Database::getLine(uint8_t line) {
 	static const int line_buffer_size = 69 + 1;
 	static char buffer[line_buffer_size];
 	ifstream sdin("address.txt");
+	int count = 0;
 
-	nss.println("helow its me");
-
-	while (sdin.getline(buffer, line_buffer_size, '\n')) {
-
-		nss.println(buffer[5], DEC);
+	while (sdin.getline(buffer, line_buffer_size, '\n') || sdin.gcount()) {
+		// Print line;
+		nss.println("Counted " + String(++count) + ": " + buffer);
 	}
 
 	sdin.close();
 }
 
+uint8_t Database::countLine() {
+	static const int line_buffer_size = 69 + 1;
+	static char buffer[line_buffer_size];
+	ifstream sdin("address.txt");
+	uint8_t count = 0;
+
+	while (sdin.getline(buffer, line_buffer_size, '\n') || sdin.gcount()) {
+		// Print line;
+		nss.println("Line " + String(++count) + ": " + buffer);
+	}
+
+	sdin.close();
+
+	return count;
+}
+
+void Database::split(String buffer) {
+	uint32_t address[2];
+	uint8_t fields[17];
+	String aux = "";
+	uint8_t nComma = 0;
+
+	for (uint8_t i = 0; i < buffer.length(); i++) {
+		// Concatenate char until comma.
+		aux.concat(buffer.charAt(i));
+
+		// If comma or end array, comma plus plus, save the value and clean the String aux.
+		if (buffer.charAt(i) == ',' || i == (buffer.length() - 1)) {
+			nComma++;
+			if (nComma == 1) {
+				address[0] = aux.toInt();
+				nss.print(address[0]);
+				aux = "";
+			}
+			else if (nComma == 2) {
+				address[1] = aux.toInt();
+				nss.print(address[1]);
+				aux = "";
+			}
+			else if (nComma > 2) {
+				fields[i + 3] = aux.toInt();
+				nss.print(fields[i + 3]);
+				aux = "";
+			}
+			if (buffer.charAt(i) == ',') {
+				nss.print(",");
+			}
+		}
+	}
+
+	nss.println("");
+
+	//// Now calcutate the HEC checksum:
+	uint8_t checksum = genCheckSum(address[0], address[1],
+		fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
+		fields[8], fields[9], fields[10], fields[11], fields[12], fields[13], fields[14], fields[15]);
+	nss.println(checksum, DEC);
+
+	//if (chkCheckSum(address[0], address[1], fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
+	//	fields[8], fields[9], fields[10], fields[11], fields[12], fields[13], fields[14], fields[15], fields[16])) {
+	//	// Save data in private attributes.
+	//	set_line(address[0], address[1], fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
+	//		fields[8], fields[9], fields[10], fields[11], fields[12], fields[13], fields[14], fields[15]);
+	//}
+	//else {
+	//	nss.println("Error in set line:" + buffer);
+	//}
+}
 
 void Database::del() {
 	// Open for delete the file.
@@ -142,8 +211,6 @@ void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 
 	// By the way, close the file.
 	myFile.close();
-
-
 }
 
 uint8_t Database::genCheckSum(uint32_t sh, uint32_t sl,
@@ -159,6 +226,45 @@ uint8_t Database::genCheckSum(uint32_t sh, uint32_t sl,
 	checksum ^= 0xFF;
 	checksum += 1;
 	return checksum;
+}
+
+uint8_t Database::chkCheckSum(uint32_t sh, uint32_t sl,
+	uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
+	uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3, uint8_t checksum) {
+
+	// Verify if equal.
+	if (checksum == genCheckSum(sh, sl,
+		act_h_d0, act_min_d0, dea_h_d0, dea_min_d0, act_h_d1, act_min_d1, dea_h_d1, dea_min_d1,
+		act_h_d2, act_min_d2, dea_h_d2, dea_min_d2, act_h_d3, act_min_d3, dea_h_d3, dea_min_d3)) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+
+}
+
+void Database::set_line(uint32_t sh, uint32_t sl,
+	uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
+	uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3) {
+	this->sh = sh;
+	this->sl = sl;
+	this->act_h_d0 = act_h_d0;
+	this->act_min_d0 = act_min_d0;
+	this->dea_h_d0 = dea_h_d0;
+	this->dea_min_d0 = dea_min_d0;
+	this->act_h_d1 = act_h_d1;
+	this->act_min_d1 = act_min_d1;
+	this->dea_h_d1 = dea_h_d1;
+	this->dea_min_d1 = dea_min_d1;
+	this->act_h_d2 = act_h_d2;
+	this->act_min_d2 = act_min_d2;
+	this->dea_h_d2 = dea_h_d2;
+	this->dea_min_d2 = dea_min_d2;
+	this->act_h_d3 = act_h_d3;
+	this->act_min_d3 = act_min_d3;
+	this->dea_h_d3 = dea_h_d3;
+	this->dea_min_d3 = dea_min_d3;
 }
 
 void Comunication::remoteRequest(XBeeAddress64 remoteAddress, uint8_t dPort, uint8_t dState) {
