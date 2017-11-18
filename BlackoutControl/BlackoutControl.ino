@@ -1,17 +1,20 @@
 //Libraries
 #include "Blackout-Control.h"
-
-//Input object declaration.
-Hardware hard;
+#include <TimerOne.h>
 
 //BlackoutControl object declaration.
 static BlackoutControl blk;
 
 void setup() {
+	// Setting the Timer One.
+	// Set a timer of length 100000 microseconds (or 0.1 sec - or 10Hz).
+	Timer1.initialize(100000);
+	// Attach the service routine here.
+	Timer1.attachInterrupt(timerOne);
 
 	// Attach the Extern Interruptions.
-	attachInterrupt(digitalPinToInterrupt(hard.get_pin_substation_relay()), extIntSubstation, CHANGE);
-	attachInterrupt(digitalPinToInterrupt(hard.get_pin_phase_relay()), extIntPhase, CHANGE);
+	attachInterrupt(digitalPinToInterrupt(blk.hard.get_pin_substation_relay()), extIntSubstation, CHANGE);
+	attachInterrupt(digitalPinToInterrupt(blk.hard.get_pin_phase_relay()), extIntPhase, CHANGE);
 
 	// Setting the boudrate of Xbee.
 	Serial.begin(9600);
@@ -44,42 +47,36 @@ void loop()
 
 }
 
-void dbInit() {
+void dbInit(void) {
 	//blk.db.del();
 	//blk.db = Database();
 	blk.db.add(1286656, 1083266861);
 }
 
-void extIntSubstation() {
-	//Verify sisnister.
-	if ((millis() - hard.get_delayHysteresis() > 60000) || (hard.get_delayHysteresis() == 0)) {
-		if (hard.get_state_substation_relay()) {
-			blk.ss.print("System OK, generator is off.");
-			blk.turnAllIn();
-		}
-		else {
-			blk.ss.print("Blackout, generator in.");
-			blk.turnAllOff();
-		}
-
+void extIntSubstation(void) {
+	if ((millis() - blk.hard.get_delayHysteresis() > 60000) || (blk.hard.get_delayHysteresis() == 0)) {
+		//Verify sisnister.
+		blk.verify_substation_relay();
 		// Reset delay;
-		hard.set_delayHysteresis(millis());
+		blk.hard.set_delayHysteresis(millis());
 	}
 }
 
-void extIntPhase() {
-	//Verify sisnister.
-	if ((millis() - hard.get_delayHysteresis() > 60000) || (hard.get_delayHysteresis() == 0)) {
-		if (hard.get_state_phase_relay()) {
-			blk.ss.print("System OK, phases came back.");
-			blk.turnAllIn();
-		}
-		else {
-			blk.ss.print("Blackout, missing some phase.");
-			blk.turnAllOff();
-		}
-
+void extIntPhase(void) {
+	if ((millis() - blk.hard.get_delayHysteresis() > 60000) || (blk.hard.get_delayHysteresis() == 0)) {
+		//Verify sisnister.
+		blk.verify_phase_relay();
 		// Reset delay;
-		hard.set_delayHysteresis(millis());
+		blk.hard.set_delayHysteresis(millis());
+	}
+}
+
+void timerOne() {
+	if ((millis() - blk.hard.get_tick() > 60000)) {
+		// Verify sisnisters.
+		extIntPhase();
+		extIntSubstation();
+		// Reset tick;
+		blk.hard.set_tick(millis());
 	}
 }

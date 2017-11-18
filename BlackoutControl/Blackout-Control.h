@@ -62,14 +62,16 @@ private:
 	static const uint8_t pin_phase_relay = 3;
 	static const uint8_t pin_chipSelect = 10;
 	static uint32_t delayHysteresis;
-
+	static uint32_t tick;
 public:
 	Hardware(void);
 	static void reset();
 	static void inputLvl(void);
 	static void set_TRISn(void);
 	static void set_delayHysteresis(uint32_t _delayHysteresis);
+	static void set_tick(uint32_t _tick);
 	static uint32_t get_delayHysteresis(void);
+	static uint32_t get_tick(void);
 	static uint8_t get_pin_phase_relay(void);
 	static uint8_t get_pin_substation_relay(void);
 	static uint8_t get_pin_chipSelect(void);
@@ -101,9 +103,13 @@ public:
 	static SoftSerial ss; // SoftSerial object declaration.
 	static Database db; //Database object declaration. The Comunication object build the SdFile, Sd and Xbee too.
 	static RTC rtc;
+	static Hardware hard;
 	BlackoutControl();
+	void verify_substation_relay(void);
+	void verify_phase_relay(void);
 	void turnAllOff(void);
 	void turnAllIn(void);
+	void turnOneByOne(void);
 	void turnIn(void);
 	void turnOut(void);
 };

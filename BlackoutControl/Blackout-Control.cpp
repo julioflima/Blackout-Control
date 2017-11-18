@@ -15,6 +15,11 @@ void SoftSerial::print(String data) {
 void SoftSerial::println(String data) {
 	nss.println(data);
 }
+SoftSerial::SoftSerial() {
+	// Setting the boudrate of Software Serial.
+	nss.begin(9600);
+}
+
 
 //Comunication Database::xb;
 SdFat Database::sd;
@@ -267,9 +272,10 @@ uint8_t Comunication::setAndQueryRemote() {
 
 uint32_t Hardware::delayHysteresis = 0;
 
+uint32_t Hardware::tick = 0;
+
 Hardware::Hardware(void) {
-	// Setting the boudrate of Software Serial.
-	nss.begin(9600);
+
 
 	// Setting the Extern Interruptions.
 	set_TRISn();
@@ -309,6 +315,13 @@ uint32_t Hardware::get_delayHysteresis(void) {
 	return delayHysteresis;
 }
 
+void Hardware::set_tick(uint32_t _tick) {
+	tick = _tick;
+}
+
+uint32_t Hardware::get_tick(void) {
+	return tick;
+}
 
 uint8_t Hardware::get_state_substation_relay(void) {
 	return digitalRead(pin_substation_relay);
@@ -330,6 +343,32 @@ uint8_t Hardware::get_pin_chipSelect() {
 	return pin_chipSelect;
 }
 
+void BlackoutControl::verify_substation_relay(void) {
+	if (hard.get_state_substation_relay() && hard.get_state_phase_relay()) {
+		nss.print("System OK, generator is off.");
+		turnAllIn();
+	}
+	else if (!hard.get_state_substation_relay()) {
+		nss.print("Blackout, generator in.");
+		turnAllOff();
+	}
+}
+
+void BlackoutControl::verify_phase_relay(void) {
+	if (hard.get_state_phase_relay() && hard.get_state_substation_relay()) {
+		nss.print("System OK, phases came back.");
+		turnAllIn();
+	}
+	else if (!hard.get_state_phase_relay()) {
+		nss.print("Blackout, missing some phase.");
+		turnAllOff();
+	}
+}
+
+// Hardware object declaration.
+Hardware BlackoutControl::hard;
+
+// Database object declaration.
 Database BlackoutControl::db;
 
 BlackoutControl::BlackoutControl() {
@@ -354,6 +393,10 @@ void BlackoutControl::turnAllIn(void) {
 	nss.println(" - ALL IN");
 }
 
+void BlackoutControl::turnOneByOne(void) {
+
+}
+
 void BlackoutControl::turnIn(void) {
 	// Change the status to automatic.
 }
@@ -361,3 +404,5 @@ void BlackoutControl::turnIn(void) {
 void BlackoutControl::turnOut(void) {
 	// Change the status to automatic.
 }
+
+
