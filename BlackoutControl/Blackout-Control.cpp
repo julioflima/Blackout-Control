@@ -164,26 +164,6 @@ void Database::split(String buffer) {
 	}
 
 	nss.println("");
-
-	////// Now calcutate the HEC checksum:
-	//uint8_t checksum = genCheckSum(address[0], address[1],
-	//	fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
-	//	fields[8], fields[9], fields[10], fields[11], fields[12], fields[13], fields[14], fields[15]);
-	//nss.println(checksum);
-
-	//// Save data in private attributes.
-	//set_line(address[0], address[1], fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
-	//	fields[8], fields[9], fields[10], fields[11], fields[12], fields[13], fields[14], fields[15]);
-
-	//if (chkCheckSum(address[0], address[1], fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
-	//	fields[8], fields[9], fields[10], fields[11], fields[12], fields[13], fields[14], fields[15], fields[16])) {
-	//	// Save data in private attributes.
-	//	set_line(address[0], address[1], fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
-	//		fields[8], fields[9], fields[10], fields[11], fields[12], fields[13], fields[14], fields[15]);
-	//}
-	//else {
-	//	nss.println("Error in set line:" + buffer);
-	//}
 }
 
 void Database::plot(void) {

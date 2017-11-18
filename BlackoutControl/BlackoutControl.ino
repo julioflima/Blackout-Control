@@ -19,7 +19,7 @@ void setup() {
 	// Wait the Xbee configurations.
 	delay(0);
 
-	//dbInit();
+	dbInit();
 }
 
 int count = 0;
@@ -40,7 +40,6 @@ void loop()
 	for (uint8_t i = 0; i < nLines; i++) {
 		delay(1000);
 		blk.db.split(blk.db.getLine(i));
-		blk.db.plot();
 	}
 
 }
@@ -49,9 +48,4 @@ void dbInit() {
 	//blk.db.del();
 	//blk.db = Database();
 	blk.db.add(1286656, 1083266861);
-	blk.db.add(2286656, 1083266861);
-	blk.db.add(3286656, 1083266861);
-	blk.db.add(4286656, 1083266861);
-	blk.db.add(5286656, 1083266861);
-	blk.db.add(6286656, 1083266861);
 }
