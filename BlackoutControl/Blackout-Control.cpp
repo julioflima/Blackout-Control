@@ -8,17 +8,6 @@
 // Remember to connect all devices to a common Ground: XBee, Arduino and USB-Serial device
 static SoftwareSerial nss(ssRX, ssTX);
 
-void SoftSerial::print(String data) {
-	nss.print(data);
-}
-
-void SoftSerial::println(String data) {
-	nss.println(data);
-}
-SoftSerial::SoftSerial() {
-	// Setting the boudrate of Software Serial.
-	nss.begin(9600);
-}
 
 
 //Comunication Database::xb;
@@ -275,7 +264,8 @@ uint32_t Hardware::delayHysteresis = 0;
 uint32_t Hardware::tick = 0;
 
 Hardware::Hardware(void) {
-
+	// Setting the boudrate of Software Serial.
+	nss.begin(9600);
 
 	// Setting the Extern Interruptions.
 	set_TRISn();
@@ -305,6 +295,14 @@ void Hardware::inputLvl(void) {
 	pinMode(get_pin_phase_relay(), INPUT_PULLUP);
 	pinMode(get_pin_substation_relay(), INPUT_PULLUP);
 	//Throut the resistor to pulldown.
+}
+
+void Hardware::print(String data) {
+	nss.print(data);
+}
+
+void Hardware::println(String data) {
+	nss.println(data);
 }
 
 void Hardware::set_delayHysteresis(uint32_t _delayHysteresis) {

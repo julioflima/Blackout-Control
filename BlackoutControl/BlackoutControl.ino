@@ -13,8 +13,8 @@ void setup() {
 	Timer1.attachInterrupt(timerOne);
 
 	// Attach the Extern Interruptions.
-	attachInterrupt(digitalPinToInterrupt(blk.hard.get_pin_substation_relay()), extIntSubstation, CHANGE);
-	attachInterrupt(digitalPinToInterrupt(blk.hard.get_pin_phase_relay()), extIntPhase, CHANGE);
+	attachInterrupt(digitalPinToInterrupt(blk.hard.get_pin_substation_relay()), extIntSubstation, FALLING);
+	attachInterrupt(digitalPinToInterrupt(blk.hard.get_pin_phase_relay()), extIntPhase, FALLING);
 
 	// Setting the boudrate of Xbee.
 	Serial.begin(9600);
