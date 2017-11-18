@@ -6,6 +6,13 @@
 #include <SoftwareSerial.h>
 #include <avr/wdt.h>
 
+class SoftSerial {
+private:
+public:
+	void print(String data);
+	void println(String data);
+};
+
 class Status {
 private:
 	char status;
@@ -81,14 +88,13 @@ public:
 class Database : public Hardware {
 private:
 	static SdFat sd;
-	SdFile myFile;
+	static SdFile myFile;
 	String fileName = "address.csv";
 	uint32_t sh, sl;
-	uint8_t act_h_d0, act_min_d0, dea_h_d0, dea_min_d0, act_h_d1, act_min_d1, dea_h_d1, dea_min_d1,
+	static uint8_t act_h_d0, act_min_d0, dea_h_d0, dea_min_d0, act_h_d1, act_min_d1, dea_h_d1, dea_min_d1,
 		act_h_d2, act_min_d2, dea_h_d2, dea_min_d2, act_h_d3, act_min_d3, dea_h_d3, dea_min_d3, checksum;
 public:
 	Database();
-	void del();
 	void set_line(uint32_t sh, uint32_t sl,
 		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
 		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3);
@@ -102,9 +108,11 @@ public:
 		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
 		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3,
 		uint8_t checksum);
-	void getLine(uint8_t line);
+	String getLine(uint8_t line);
 	uint8_t Database::countLine();
-	void print();
+	void del(void);
+	void plot(void);
+	void print(void);
 	void split(String buffer);
 };
 
@@ -124,6 +132,8 @@ public:
 
 class BlackoutControl {
 public:
+	// SoftSerial object declaration.
+	static SoftSerial ss;
 	// Status object declaration.
 	static Status st;
 	// Comunication object declaration. The Comunication object build the Xbee too.

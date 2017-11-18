@@ -8,6 +8,14 @@
 // Remember to connect all devices to a common Ground: XBee, Arduino and USB-Serial device
 static SoftwareSerial nss(ssRX, ssTX);
 
+void SoftSerial::print(String data) {
+	nss.print(data);
+}
+
+void SoftSerial::println(String data) {
+	nss.println(data);
+}
+
 Status::Status(void) {
 	status = 0;
 }
@@ -33,12 +41,32 @@ char Status::get_status(void) {
 }
 
 SdFat Database::sd;
+SdFile Database::myFile;
+//uint32_t Database::sh;
+//uint32_t Database::sl;
+uint8_t Database::act_h_d0;
+uint8_t Database::act_min_d0;
+uint8_t Database::dea_h_d0;
+uint8_t Database::dea_min_d0;
+uint8_t Database::act_h_d1;
+uint8_t Database::act_min_d1;
+uint8_t Database::dea_h_d1;
+uint8_t Database::dea_min_d1;
+uint8_t Database::act_h_d2;
+uint8_t Database::act_min_d2;
+uint8_t Database::dea_h_d2;
+uint8_t Database::dea_min_d2;
+uint8_t Database::act_h_d3;
+uint8_t Database::act_min_d3;
+uint8_t Database::dea_h_d3;
+uint8_t Database::dea_min_d3;
+uint8_t Database::checksum;
 
 Database::Database() {
 	if (!sd.begin(get_pin_chipSelect(), SPI_FULL_SPEED)) nss.println("SD don't init.");
 
 	// Open or create the file.
-	if (!myFile.open("address.txt", O_RDWR | O_CREAT | O_AT_END)) nss.println("Opening address.txt for create failed.");
+	if (!myFile.open("ADDRESS.TXT", O_RDWR | O_CREAT | O_AT_END)) nss.println("Opening address.txt for create failed.");
 	else nss.println("File was created!");
 
 	// Close the file.
@@ -57,20 +85,6 @@ void Database::print() {
 	myFile.close();
 }
 
-void Database::getLine(uint8_t line) {
-	static const int line_buffer_size = 69 + 1;
-	static char buffer[line_buffer_size];
-	ifstream sdin("address.txt");
-	int count = 0;
-
-	while (sdin.getline(buffer, line_buffer_size, '\n') || sdin.gcount()) {
-		// Print line;
-		nss.println("Counted " + String(++count) + ": " + buffer);
-	}
-
-	sdin.close();
-}
-
 uint8_t Database::countLine() {
 	static const int line_buffer_size = 69 + 1;
 	static char buffer[line_buffer_size];
@@ -79,35 +93,63 @@ uint8_t Database::countLine() {
 
 	while (sdin.getline(buffer, line_buffer_size, '\n') || sdin.gcount()) {
 		// Print line;
-		nss.println("Line " + String(++count) + ": " + buffer);
+		//nss.println("Counter " + String(count) + ": " + buffer);
+
+		// Increase counter.
+		count++;
 	}
 
+	// Close sdin object.
 	sdin.close();
 
+	// Return line count.
 	return count;
 }
 
+String Database::getLine(uint8_t line) {
+	static const int line_buffer_size = 69 + 1;
+	static char buffer[line_buffer_size];
+	ifstream sdin("address.txt");
+	int count = 0;
+
+	while (sdin.getline(buffer, line_buffer_size, '\n') || sdin.gcount()) {
+		if (count == line) {
+			// Print line, close sdin object and break the while.
+			nss.println("Got Line " + String(count) + ": " + buffer);
+			sdin.close();
+			break;
+		}
+
+		// Increase counter.
+		count++;
+	}
+
+	// Return line.
+	return buffer;
+}
+
 void Database::split(String buffer) {
-	uint32_t address[2];
-	uint8_t fields[17];
+	static uint8_t fields[17];
 	String aux = "";
 	uint8_t nComma = 0;
+
+	nss.print("Splitted Line: ");
 
 	for (uint8_t i = 0; i < buffer.length(); i++) {
 		// Concatenate char until comma.
 		aux.concat(buffer.charAt(i));
 
 		// If comma or end array, comma plus plus, save the value and clean the String aux.
-		if (buffer.charAt(i) == ',' || i == (buffer.length() - 1)) {
+		if (buffer.charAt(i) == ',' || nComma == 17) {
 			nComma++;
 			if (nComma == 1) {
-				address[0] = aux.toInt();
-				nss.print(address[0]);
+				sh = aux.toInt();
+				nss.print(sh);
 				aux = "";
 			}
 			else if (nComma == 2) {
-				address[1] = aux.toInt();
-				nss.print(address[1]);
+				sl = aux.toInt();
+				nss.print(sl);
 				aux = "";
 			}
 			else if (nComma > 2) {
@@ -123,11 +165,15 @@ void Database::split(String buffer) {
 
 	nss.println("");
 
-	//// Now calcutate the HEC checksum:
-	uint8_t checksum = genCheckSum(address[0], address[1],
-		fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
-		fields[8], fields[9], fields[10], fields[11], fields[12], fields[13], fields[14], fields[15]);
-	nss.println(checksum, DEC);
+	////// Now calcutate the HEC checksum:
+	//uint8_t checksum = genCheckSum(address[0], address[1],
+	//	fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
+	//	fields[8], fields[9], fields[10], fields[11], fields[12], fields[13], fields[14], fields[15]);
+	//nss.println(checksum);
+
+	//// Save data in private attributes.
+	//set_line(address[0], address[1], fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
+	//	fields[8], fields[9], fields[10], fields[11], fields[12], fields[13], fields[14], fields[15]);
 
 	//if (chkCheckSum(address[0], address[1], fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
 	//	fields[8], fields[9], fields[10], fields[11], fields[12], fields[13], fields[14], fields[15], fields[16])) {
@@ -140,7 +186,13 @@ void Database::split(String buffer) {
 	//}
 }
 
-void Database::del() {
+void Database::plot(void) {
+	nss.print("Saved Line: ");
+	nss.print(sh);
+	nss.println(sl);
+}
+
+void Database::del(void) {
 	// Open for delete the file.
 	if (!myFile.open("address.txt", O_RDWR)) nss.println("Opening address.txt for remove failed.");
 	if (!myFile.remove()) nss.println("Removing file failed.");
@@ -196,11 +248,14 @@ void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 		myFile.print(dea_min_d3, DEC);
 		myFile.print(",");
 
-		// Now calcutate the HEC checksum:
+		// Now calcutate the HEX checksum:
 		uint8_t checksum = genCheckSum(sh, sl,
 			act_h_d0, act_min_d0, dea_h_d0, dea_min_d0, act_h_d1, act_min_d1, dea_h_d1, dea_min_d1,
 			act_h_d2, act_min_d2, dea_h_d2, dea_min_d2, act_h_d3, act_min_d3, dea_h_d3, dea_min_d3);
 		myFile.println(checksum, DEC);
+		nss.println(checksum, DEC);
+		nss.println(checksum, HEX);
+
 
 		// Report added.
 		nss.print("The address,  ");
@@ -244,27 +299,27 @@ uint8_t Database::chkCheckSum(uint32_t sh, uint32_t sl,
 
 }
 
-void Database::set_line(uint32_t sh, uint32_t sl,
-	uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
-	uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3) {
-	this->sh = sh;
-	this->sl = sl;
-	this->act_h_d0 = act_h_d0;
-	this->act_min_d0 = act_min_d0;
-	this->dea_h_d0 = dea_h_d0;
-	this->dea_min_d0 = dea_min_d0;
-	this->act_h_d1 = act_h_d1;
-	this->act_min_d1 = act_min_d1;
-	this->dea_h_d1 = dea_h_d1;
-	this->dea_min_d1 = dea_min_d1;
-	this->act_h_d2 = act_h_d2;
-	this->act_min_d2 = act_min_d2;
-	this->dea_h_d2 = dea_h_d2;
-	this->dea_min_d2 = dea_min_d2;
-	this->act_h_d3 = act_h_d3;
-	this->act_min_d3 = act_min_d3;
-	this->dea_h_d3 = dea_h_d3;
-	this->dea_min_d3 = dea_min_d3;
+void Database::set_line(uint32_t _sh, uint32_t _sl,
+	uint8_t _act_h_d0, uint8_t _act_min_d0, uint8_t _dea_h_d0, uint8_t _dea_min_d0, uint8_t _act_h_d1, uint8_t _act_min_d1, uint8_t _dea_h_d1, uint8_t _dea_min_d1,
+	uint8_t _act_h_d2, uint8_t _act_min_d2, uint8_t _dea_h_d2, uint8_t _dea_min_d2, uint8_t _act_h_d3, uint8_t _act_min_d3, uint8_t _dea_h_d3, uint8_t _dea_min_d3) {
+	sh = _sh;
+	sl = _sl;
+	act_h_d0 = _act_h_d0;
+	act_min_d0 = _act_min_d0;
+	dea_h_d0 = _dea_h_d0;
+	dea_min_d0 = _dea_min_d0;
+	act_h_d1 = _act_h_d1;
+	act_min_d1 = _act_min_d1;
+	dea_h_d1 = _dea_h_d1;
+	dea_min_d1 = _dea_min_d1;
+	act_h_d2 = _act_h_d2;
+	act_min_d2 = _act_min_d2;
+	dea_h_d2 = _dea_h_d2;
+	dea_min_d2 = _dea_min_d2;
+	act_h_d3 = _act_h_d3;
+	act_min_d3 = _act_min_d3;
+	dea_h_d3 = _dea_h_d3;
+	dea_min_d3 = _dea_min_d3;
 }
 
 void Comunication::remoteRequest(XBeeAddress64 remoteAddress, uint8_t dPort, uint8_t dState) {

@@ -5,7 +5,7 @@
 Input in;
 
 //BlackoutControl object declaration.
-BlackoutControl blk;
+static BlackoutControl blk;
 
 void setup() {
 
@@ -19,7 +19,7 @@ void setup() {
 	// Wait the Xbee configurations.
 	delay(0);
 
-	dbInit();
+	//dbInit();
 }
 
 int count = 0;
@@ -35,26 +35,23 @@ void loop()
 
 	//count++;
 
-	delay(1000);
+	uint8_t nLines = blk.db.countLine();
 
-	//const int line_buffer_size = 69 + 1;
-	//char buffer[line_buffer_size];
-	//ifstream sdin("address.txt");
-
-	//int line = 0;
-
-	//while (sdin.getline(buffer, line_buffer_size, '\n') || sdin.gcount()) {
-	//	int count = sdin.gcount();
-	//	Serial.print(String(++line));
-	//	Serial.println(buffer);
-	//}
-
-	blk.db.getLine();
+	for (uint8_t i = 0; i < nLines; i++) {
+		delay(1000);
+		blk.db.split(blk.db.getLine(i));
+		blk.db.plot();
+	}
 
 }
 
 void dbInit() {
 	//blk.db.del();
 	//blk.db = Database();
-	//blk.db.add(0x0013A200, 0x4091572D);
+	blk.db.add(1286656, 1083266861);
+	blk.db.add(2286656, 1083266861);
+	blk.db.add(3286656, 1083266861);
+	blk.db.add(4286656, 1083266861);
+	blk.db.add(5286656, 1083266861);
+	blk.db.add(6286656, 1083266861);
 }
