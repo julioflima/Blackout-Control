@@ -17,9 +17,14 @@ Xbee, Arduino, Point-to-Multpoint, 802.15.4
 
 4 - É necessária a configuração dos parâmetros CE e SM para determinação se Coordinator, Router ou End device, esses determinam se são do tipo coordinator e se entram em modo sleep, respectivamente. Nenhum outro dispositivo pode ser coordinator se não tiver CM = 1. Router não podem ser coordinators. Apenas end devices podem entrar em modo sleep.
 Coordinator:
-> CM = 0 , SM = 0
+>CM = 0 
+
+>SM = 0
+
 End device:
-> CM = 0 , SM = 0 
+>CM = 0 
+
+>SM = 0 
 
 5 - Com o objetivo de configurar uma rede API, deve ser habilitado o parâmetro AP:
 >AP = 1
@@ -70,36 +75,34 @@ Modem     | Function Set | Version
 XB24      | 802.15.4     | 10ef
 
 ### Coordinator
-Parameter            | Value        | Comments
--------------------- | ------------ | -----------
-CH (Channel)         | 0x0C         | Identical
-ID (PAN ID)          | 0x2017       | Identical
-DH (Second. Address) | 0x0	        | Identical
-DL (Second. Address) | 0x0	        | Identical
-MY (Source Address)  | 0x0          | Unique
-CE (Coord. Enable)   | 1  	        | Unique
-A2 (Coord. Assoc.)   | 0x04         | Unique
-NI (Name)	           | COORD_STAC   | Unique
-AP		               | 1	          | Identical
-EE	             	   | 1	          |	Identical
-KY		               | 1FF2FF3FF    | Identical
-
-# End Device
-Parameter            | Value        | Comments
--------------------- | ------------ | -----------
+Parameter            | Value         | Comments
+-------------------- | ------------- | ----------
 CH (Channel)         | 0x0C          | Identical
 ID (PAN ID)          | 0x2017        | Identical
-DH (Second. Address) | 0x0	        | Identical
-DL (Second. Address) | 0x0	          | Identical
-MY (Source Address)  | 0x01          | Unique
-CE (Coord. Enable)   | 0  	          | Identical to end devices
-A1 (End Dev Assoc.)  | 0x04          | Identical to end devices
-NI (Name)	           | END_STAC_01   | Unique
-AP (Mode)	           | 1	            | Identical
-EE (Secure?)	       | 1		          | Identical
-KY (Key)             | 1FF2FF3FF     | Identical
+DH (Second. Address) | 0x0	         | Identical
+DL (Second. Address) | 0x0	         | Identical
+MY (Source Address)  | 0x0           | Unique
+CE (Coord. Enable)   | 1  	         | Unique
+A2 (Coord. Assoc.)   | 0x04          | Unique
+NI (Name)	           | COORD_STAC    | Unique
+AP		               | 1	           | Identical
+EE	             	   | 1	           |	Identical
+KY		               | 1FF2FF3FF     | Identical
 
-### Comunication
+# End Device
+Parameter            | Value         | Comments
+-------------------- | ------------- | ---------
+CH (Channel)         | 0x0C          | Identical
+ID (PAN ID)          | 0x2017        | Identical
+DH (Second. Address) | 0x0	         | Identical
+DL (Second. Address) | 0x0	         | Identical
+MY (Source Address)  | 0x01          | Unique
+CE (Coord. Enable)   | 0  	         | Identical to end devices
+A1 (End Dev Assoc.)  | 0x04          | Identical to end devices
+NI (Name)	           | END_STAC_XX   | Unique
+AP (Mode)	           | 1	           | Identical
+EE (Secure?)	       | 1		         | Identical
+KY (Key)             | 1FF2FF3FF     | Identical
 
 ### Network
 >Broadcast
