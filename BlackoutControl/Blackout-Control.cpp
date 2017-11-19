@@ -354,7 +354,7 @@ void BlackoutControl::verify_substation_relay(void) {
 
 void BlackoutControl::verify_phase_relay(void) {
 	if (hard.get_state_phase_relay() && hard.get_state_substation_relay()) {
-		nss.print("System OK, phases came back.");
+		nss.print("System OK, all phases are in.");
 		turnAllIn();
 	}
 	else if (!hard.get_state_phase_relay()) {

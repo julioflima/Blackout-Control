@@ -2,6 +2,8 @@
 #include "Blackout-Control.h"
 #include <TimerOne.h>
 
+#define TIMEBASE 6000
+
 //BlackoutControl object declaration.
 static BlackoutControl blk;
 
@@ -45,6 +47,14 @@ void loop()
 	//	blk.db.split(blk.db.getLine(i));
 	//}
 
+
+	if ((millis() - blk.hard.get_tick() > TIMEBASE)) {
+		// Verify sisnisters.
+		blk.verify_phase_relay();
+		blk.verify_substation_relay();
+		// Reset tick;
+		blk.hard.set_tick(millis());
+	}
 }
 
 void dbInit(void) {
@@ -54,7 +64,7 @@ void dbInit(void) {
 }
 
 void extIntSubstation(void) {
-	if ((millis() - blk.hard.get_delayHysteresis() > 60000) || (blk.hard.get_delayHysteresis() == 0)) {
+	if ((millis() - blk.hard.get_delayHysteresis() > TIMEBASE) || (blk.hard.get_delayHysteresis() == 0)) {
 		//Verify sisnister.
 		blk.verify_substation_relay();
 		// Reset delay;
@@ -63,7 +73,7 @@ void extIntSubstation(void) {
 }
 
 void extIntPhase(void) {
-	if ((millis() - blk.hard.get_delayHysteresis() > 60000) || (blk.hard.get_delayHysteresis() == 0)) {
+	if ((millis() - blk.hard.get_delayHysteresis() > TIMEBASE) || (blk.hard.get_delayHysteresis() == 0)) {
 		//Verify sisnister.
 		blk.verify_phase_relay();
 		// Reset delay;
@@ -72,11 +82,5 @@ void extIntPhase(void) {
 }
 
 void timerOne() {
-	if ((millis() - blk.hard.get_tick() > 60000)) {
-		// Verify sisnisters.
-		extIntPhase();
-		extIntSubstation();
-		// Reset tick;
-		blk.hard.set_tick(millis());
-	}
+
 }
