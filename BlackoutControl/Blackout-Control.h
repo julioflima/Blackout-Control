@@ -9,25 +9,12 @@
 class SoftSerial {
 private:
 public:
+	SoftSerial();
 	void print(String data);
 	void println(String data);
 };
 
-class Status {
-private:
-	char status;
-public:
-	Status(void);
-	void set_stop(void);
-	void set_automatic(void);
-	void set_manual(void);
-	void set_hibrid(void);
-
-	char get_status(void);
-};
-
-
-class Time {
+class RTC {
 private:
 	char day;
 	char month;
@@ -71,18 +58,25 @@ public:
 
 class Hardware {
 private:
-	static const char pin_relay_substation = 2;
-	static const char pin_relay_ff = 3;
-	static const char pin_chipSelect = 10;
+	static const uint8_t pin_substation_relay = 2;
+	static const uint8_t pin_phase_relay = 3;
+	static const uint8_t pin_chipSelect = 10;
+	static uint32_t delayHysteresis;
+	static uint32_t tick;
 public:
 	Hardware(void);
 	static void reset();
-	static void set_TRISn(void);
 	static void inputLvl(void);
-	static char get_pin_relay_ff(void);
-	static char get_pin_relay_substation(void);
-	static char get_pin_chipSelect(void);
-
+	static void set_TRISn(void);
+	static void set_delayHysteresis(uint32_t _delayHysteresis);
+	static void set_tick(uint32_t _tick);
+	static uint32_t get_delayHysteresis(void);
+	static uint32_t get_tick(void);
+	static uint8_t get_pin_phase_relay(void);
+	static uint8_t get_pin_substation_relay(void);
+	static uint8_t get_pin_chipSelect(void);
+	static uint8_t get_state_substation_relay(void);
+	static uint8_t get_state_phase_relay(void);
 };
 
 class Database : public Hardware {
@@ -95,55 +89,27 @@ private:
 		act_h_d2, act_min_d2, dea_h_d2, dea_min_d2, act_h_d3, act_min_d3, dea_h_d3, dea_min_d3, checksum;
 public:
 	Database();
-	void set_line(uint32_t sh, uint32_t sl,
-		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
-		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3);
+	//static Comunication xb; // Comunication object declaration. The Comunication object build the Xbee too.
 	void add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 		uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
 		uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30);
-	uint8_t genCheckSum(uint32_t sh, uint32_t sl,
-		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
-		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3);
-	uint8_t chkCheckSum(uint32_t sh, uint32_t sl,
-		uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
-		uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3,
-		uint8_t checksum);
 	String getLine(uint8_t line);
-	uint8_t Database::countLine();
-	void del(void);
-	void plot(void);
-	void print(void);
+	uint8_t countLine();
 	void split(String buffer);
-};
-
-class Input : public Hardware {
-private:
-	static bool relay_substation;
-	static bool relay_ff;
-public:
-	static void set_relay_substation(bool _relay_substastion);
-	static void set_relay_ff(bool _relay_ff);
-	static bool get_relay_substation(void);
-	static bool get_relay_ff(void);
-	static void extIntSubstation(void);
-	static void extIntFF(void);
-	static void timer_one(void);
 };
 
 class BlackoutControl {
 public:
-	// SoftSerial object declaration.
-	static SoftSerial ss;
-	// Status object declaration.
-	static Status st;
-	// Comunication object declaration. The Comunication object build the Xbee too.
-	static Comunication xb;
-	//Database object declaration. The Comunication object build the SdFile and Sd too.
-	static Database db;
-	static Time time;
+	static SoftSerial ss; // SoftSerial object declaration.
+	static Database db; //Database object declaration. The Comunication object build the SdFile, Sd and Xbee too.
+	static RTC rtc;
+	static Hardware hard;
 	BlackoutControl();
-	void turnAllOut(void);
+	void verify_substation_relay(void);
+	void verify_phase_relay(void);
+	void turnAllOff(void);
 	void turnAllIn(void);
+	void turnOneByOne(void);
 	void turnIn(void);
 	void turnOut(void);
 };

@@ -15,31 +15,13 @@ void SoftSerial::print(String data) {
 void SoftSerial::println(String data) {
 	nss.println(data);
 }
-
-Status::Status(void) {
-	status = 0;
+SoftSerial::SoftSerial() {
+	// Setting the boudrate of Software Serial.
+	nss.begin(9600);
 }
 
-void Status::set_stop(void) {
-	status = 0;
-}
 
-void Status::set_automatic(void) {
-	status = 1;
-}
-
-void Status::set_manual(void) {
-	status = 2;
-}
-
-void Status::set_hibrid(void) {
-	status = 3;
-}
-
-char Status::get_status(void) {
-	return status;
-}
-
+//Comunication Database::xb;
 SdFat Database::sd;
 SdFile Database::myFile;
 //uint32_t Database::sh;
@@ -63,6 +45,9 @@ uint8_t Database::dea_min_d3;
 uint8_t Database::checksum;
 
 Database::Database() {
+	// Setting the Xbee.
+	//xb.xbee.begin(Serial);
+
 	if (!sd.begin(get_pin_chipSelect(), SPI_FULL_SPEED)) nss.println("SD don't init.");
 
 	// Open or create the file.
@@ -70,18 +55,6 @@ Database::Database() {
 	else nss.println("File was created!");
 
 	// Close the file.
-	myFile.close();
-}
-
-void Database::print() {
-	// Re-open the file for reading to print.
-	if (!myFile.open("address.txt", O_READ)) nss.println("Opening address.txt for print failed.");
-
-	// Read from the file and print.
-	int16_t data;
-	while ((data = myFile.read()) >= 0) nss.write(data);
-
-	// Close the file. 
 	myFile.close();
 }
 
@@ -166,19 +139,6 @@ void Database::split(String buffer) {
 	nss.println("");
 }
 
-void Database::plot(void) {
-	nss.print("Saved Line: ");
-	nss.print(sh);
-	nss.println(sl);
-}
-
-void Database::del(void) {
-	// Open for delete the file.
-	if (!myFile.open("address.txt", O_RDWR)) nss.println("Opening address.txt for remove failed.");
-	if (!myFile.remove()) nss.println("Removing file failed.");
-	else nss.println("File was removed!");
-}
-
 void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 	uint8_t act_h_d0 = 20, uint8_t act_min_d0 = 30, uint8_t dea_h_d0 = 6, uint8_t dea_min_d0 = 30, uint8_t act_h_d1 = 20, uint8_t act_min_d1 = 30, uint8_t dea_h_d1 = 6, uint8_t dea_min_d1 = 30,
 	uint8_t act_h_d2 = 20, uint8_t act_min_d2 = 30, uint8_t dea_h_d2 = 6, uint8_t dea_min_d2 = 30, uint8_t act_h_d3 = 20, uint8_t act_min_d3 = 30, uint8_t dea_h_d3 = 6, uint8_t dea_min_d3 = 30) {
@@ -226,16 +186,6 @@ void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 		myFile.print(dea_h_d3, DEC);
 		myFile.print(",");
 		myFile.print(dea_min_d3, DEC);
-		myFile.print(",");
-
-		// Now calcutate the HEX checksum:
-		uint8_t checksum = genCheckSum(sh, sl,
-			act_h_d0, act_min_d0, dea_h_d0, dea_min_d0, act_h_d1, act_min_d1, dea_h_d1, dea_min_d1,
-			act_h_d2, act_min_d2, dea_h_d2, dea_min_d2, act_h_d3, act_min_d3, dea_h_d3, dea_min_d3);
-		myFile.println(checksum, DEC);
-		nss.println(checksum, DEC);
-		nss.println(checksum, HEX);
-
 
 		// Report added.
 		nss.print("The address,  ");
@@ -246,60 +196,6 @@ void Database::add(uint32_t sh = 0x00, uint32_t sl = BROADCAST_ADDRESS,
 
 	// By the way, close the file.
 	myFile.close();
-}
-
-uint8_t Database::genCheckSum(uint32_t sh, uint32_t sl,
-	uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
-	uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3) {
-
-	// Now calcutate the HEC checksum:
-	uint8_t checksum = 0;
-	checksum = (sh & 0xff) + ((sh >> 8) & 0xff) + ((sh >> 16) & 0xff) + ((sh >> 32) & 0xff);
-	checksum += (sl & 0xff) + ((sl >> 8) & 0xff) + ((sl >> 16) & 0xff) + ((sl >> 24) & 0xff);
-	checksum += act_h_d0 + act_min_d0 + dea_h_d0 + dea_min_d0 + act_h_d1 + act_min_d1 + dea_h_d1 + dea_min_d1;
-	checksum += act_h_d2 + act_min_d2 + dea_h_d2 + dea_min_d2 + act_h_d3 + act_min_d3 + dea_h_d3 + dea_min_d3;
-	checksum ^= 0xFF;
-	checksum += 1;
-	return checksum;
-}
-
-uint8_t Database::chkCheckSum(uint32_t sh, uint32_t sl,
-	uint8_t act_h_d0, uint8_t act_min_d0, uint8_t dea_h_d0, uint8_t dea_min_d0, uint8_t act_h_d1, uint8_t act_min_d1, uint8_t dea_h_d1, uint8_t dea_min_d1,
-	uint8_t act_h_d2, uint8_t act_min_d2, uint8_t dea_h_d2, uint8_t dea_min_d2, uint8_t act_h_d3, uint8_t act_min_d3, uint8_t dea_h_d3, uint8_t dea_min_d3, uint8_t checksum) {
-
-	// Verify if equal.
-	if (checksum == genCheckSum(sh, sl,
-		act_h_d0, act_min_d0, dea_h_d0, dea_min_d0, act_h_d1, act_min_d1, dea_h_d1, dea_min_d1,
-		act_h_d2, act_min_d2, dea_h_d2, dea_min_d2, act_h_d3, act_min_d3, dea_h_d3, dea_min_d3)) {
-		return 1;
-	}
-	else {
-		return 0;
-	}
-
-}
-
-void Database::set_line(uint32_t _sh, uint32_t _sl,
-	uint8_t _act_h_d0, uint8_t _act_min_d0, uint8_t _dea_h_d0, uint8_t _dea_min_d0, uint8_t _act_h_d1, uint8_t _act_min_d1, uint8_t _dea_h_d1, uint8_t _dea_min_d1,
-	uint8_t _act_h_d2, uint8_t _act_min_d2, uint8_t _dea_h_d2, uint8_t _dea_min_d2, uint8_t _act_h_d3, uint8_t _act_min_d3, uint8_t _dea_h_d3, uint8_t _dea_min_d3) {
-	sh = _sh;
-	sl = _sl;
-	act_h_d0 = _act_h_d0;
-	act_min_d0 = _act_min_d0;
-	dea_h_d0 = _dea_h_d0;
-	dea_min_d0 = _dea_min_d0;
-	act_h_d1 = _act_h_d1;
-	act_min_d1 = _act_min_d1;
-	dea_h_d1 = _dea_h_d1;
-	dea_min_d1 = _dea_min_d1;
-	act_h_d2 = _act_h_d2;
-	act_min_d2 = _act_min_d2;
-	dea_h_d2 = _dea_h_d2;
-	dea_min_d2 = _dea_min_d2;
-	act_h_d3 = _act_h_d3;
-	act_min_d3 = _act_min_d3;
-	dea_h_d3 = _dea_h_d3;
-	dea_min_d3 = _dea_min_d3;
 }
 
 void Comunication::remoteRequest(XBeeAddress64 remoteAddress, uint8_t dPort, uint8_t dState) {
@@ -374,10 +270,14 @@ uint8_t Comunication::setAndQueryRemote() {
 	return true;
 }
 
-Hardware::Hardware(void) {
-	// Setting the boudrate of Software Serial.
-	nss.begin(9600);
+uint32_t Hardware::delayHysteresis = 0;
 
+uint32_t Hardware::tick = 0;
+
+Hardware::Hardware(void) {
+
+
+	// Setting the Extern Interruptions.
 	set_TRISn();
 	inputLvl();
 }
@@ -394,100 +294,115 @@ void Hardware::reset() {
 
 void Hardware::set_TRISn(void) {
 	//Throut the ports to input.
-	pinMode(get_pin_relay_ff(), INPUT);
-	pinMode(get_pin_relay_substation(), INPUT);
+	pinMode(get_pin_phase_relay(), INPUT);
+	pinMode(get_pin_substation_relay(), INPUT);
 	//Throut the ports to output.
 }
 
 void Hardware::inputLvl(void) {
 	//Throut the ports to input.
 	//Throut the resistor to pullup.
-	pinMode(get_pin_relay_ff(), INPUT_PULLUP);
-	pinMode(get_pin_relay_substation(), INPUT_PULLUP);
+	pinMode(get_pin_phase_relay(), INPUT_PULLUP);
+	pinMode(get_pin_substation_relay(), INPUT_PULLUP);
 	//Throut the resistor to pulldown.
 }
 
-char Hardware::get_pin_relay_substation(void) {
-	return pin_relay_substation;
+void Hardware::set_delayHysteresis(uint32_t _delayHysteresis) {
+	delayHysteresis = _delayHysteresis;
 }
 
-char Hardware::get_pin_relay_ff(void) {
-	return pin_relay_ff;
+uint32_t Hardware::get_delayHysteresis(void) {
+	return delayHysteresis;
 }
 
-char Hardware::get_pin_chipSelect() {
+void Hardware::set_tick(uint32_t _tick) {
+	tick = _tick;
+}
+
+uint32_t Hardware::get_tick(void) {
+	return tick;
+}
+
+uint8_t Hardware::get_state_substation_relay(void) {
+	return digitalRead(pin_substation_relay);
+}
+
+uint8_t Hardware::get_state_phase_relay(void) {
+	return digitalRead(pin_phase_relay);
+}
+
+uint8_t Hardware::get_pin_substation_relay(void) {
+	return pin_substation_relay;
+}
+
+uint8_t Hardware::get_pin_phase_relay(void) {
+	return pin_phase_relay;
+}
+
+uint8_t Hardware::get_pin_chipSelect() {
 	return pin_chipSelect;
 }
 
-bool Input::relay_substation;
-
-bool Input::relay_ff;
-
-bool Input::get_relay_substation(void) {
-	return relay_substation;
-}
-
-bool Input::get_relay_ff(void) {
-	return relay_ff;
-}
-
-void Input::set_relay_substation(bool _relay_substation) {
-	relay_substation = _relay_substation;
-}
-
-void Input::set_relay_ff(bool _relay_ff) {
-	relay_ff = _relay_ff;
-}
-
-void Input::timer_one(void) {
-
-}
-
-void Input::extIntSubstation() {
-	//Update the port 2.
-	set_relay_substation(digitalRead(get_pin_relay_substation()));
-	nss.println("Blackout, generator in.");
-}
-
-void Input::extIntFF() {
-	//Update the port 3.
-	set_relay_ff(digitalRead(get_pin_relay_ff()));
-	nss.println("Blackout, missing some phase.");
-}
-
-Status BlackoutControl::st;
-
-Comunication BlackoutControl::xb;
-
-Database BlackoutControl::db;
-
-BlackoutControl::BlackoutControl() {
-	// Setting the Xbee.
-	xb.xbee.begin(Serial);
-}
-
-void BlackoutControl::turnAllOut(void) {
-	// Change the status to stop.
-	st.set_stop();
-
-	// Increment i and send in broadcast the value of digital ports to low.
-	for (uint8_t i = 0; i < 4; i++) {
-		xb.remoteRequest(XBeeAddress64(0x00, BROADCAST_ADDRESS), i, 4);
-		delay(400);
+void BlackoutControl::verify_substation_relay(void) {
+	if (hard.get_state_substation_relay() && hard.get_state_phase_relay()) {
+		nss.print("System OK, generator is off.");
+		turnAllIn();
+	}
+	else if (!hard.get_state_substation_relay()) {
+		nss.print("Blackout, generator in.");
+		turnAllOff();
 	}
 }
 
+void BlackoutControl::verify_phase_relay(void) {
+	if (hard.get_state_phase_relay() && hard.get_state_substation_relay()) {
+		nss.print("System OK, phases came back.");
+		turnAllIn();
+	}
+	else if (!hard.get_state_phase_relay()) {
+		nss.print("Blackout, missing some phase.");
+		turnAllOff();
+	}
+}
+
+// Hardware object declaration.
+Hardware BlackoutControl::hard;
+
+// Database object declaration.
+Database BlackoutControl::db;
+
+BlackoutControl::BlackoutControl() {
+
+}
+
+void BlackoutControl::turnAllOff(void) {
+	// Increment i and send in broadcast the value of digital ports to low.
+	for (uint8_t i = 0; i < 4; i++) {
+		//db.xb.remoteRequest(XBeeAddress64(0x00, BROADCAST_ADDRESS), i, 4);
+		delay(400);
+	}
+	nss.println(" - ALL OFF");
+}
+
 void BlackoutControl::turnAllIn(void) {
-	// Change the status to automatic.
-	st.set_automatic();
+	// Increment i and send in broadcast the value of digital ports to high.
+	for (uint8_t i = 0; i < 4; i++) {
+		//db.xb.remoteRequest(XBeeAddress64(0x00, BROADCAST_ADDRESS), i, 5);
+		delay(400);
+	}
+	nss.println(" - ALL IN");
+}
+
+void BlackoutControl::turnOneByOne(void) {
+
 }
 
 void BlackoutControl::turnIn(void) {
 	// Change the status to automatic.
-	st.set_automatic();
 }
 
 void BlackoutControl::turnOut(void) {
 	// Change the status to automatic.
-	st.set_automatic();
 }
+
+
