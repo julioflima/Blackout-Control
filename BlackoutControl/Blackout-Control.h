@@ -6,14 +6,6 @@
 #include <SoftwareSerial.h>
 #include <avr/wdt.h>
 
-class SoftSerial {
-private:
-public:
-	SoftSerial();
-	void print(String data);
-	void println(String data);
-};
-
 class RTC {
 private:
 	char day;
@@ -65,6 +57,8 @@ private:
 	static uint32_t tick;
 public:
 	Hardware(void);
+	void print(String data);
+	void println(String data);
 	static void reset();
 	static void inputLvl(void);
 	static void set_TRISn(void);
@@ -100,10 +94,9 @@ public:
 
 class BlackoutControl {
 public:
-	static SoftSerial ss; // SoftSerial object declaration.
 	static Database db; //Database object declaration. The Comunication object build the SdFile, Sd and Xbee too.
 	static RTC rtc;
-	static Hardware hard;
+	static Hardware hard; // Hardware object declaration.
 	BlackoutControl();
 	void verify_substation_relay(void);
 	void verify_phase_relay(void);
