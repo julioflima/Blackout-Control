@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<data>
+  <loop>true</loop>
+  <repeat_times>1</repeat_times>
+  <repeat_period>500</repeat_period>
+  <frames_list>
+    <frame name="up all">
+      <payload>7E00101701000000000000FFFFFFFE0244300571</payload>
+    </frame>
+    <frame name="down all">
+      <payload>7E00101701000000000000FFFFFFFE0244300472</payload>
+    </frame>
+    <frame name="up 1">
+      <payload>7E001017010013A2004091572DFFFE0244300565</payload>
+    </frame>
+    <frame name="down 1">
+      <payload>7E001017010013A2004091572DFFFE0244300466</payload>
+    </frame>
+  </frames_list>
+</data>
